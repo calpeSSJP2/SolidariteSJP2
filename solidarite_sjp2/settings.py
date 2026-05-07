@@ -1,24 +1,23 @@
 from pathlib import Path
 import os
+import dj_database_url  # optional, makes handling DATABASE_URL easier for hosts
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# ==============================
+# Base Directory
+# ==============================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ==============================
-# SECURITY
+# Security
 # ==============================
-# Use environment variables for production secrets
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-local-dev-key")  # fallback for local testing
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [
-    "solidaritesjp2.onrender.com",
-    "www.solidaritesjp2.com",
-    "solidaritesjp2.com"
-]
+# Use environment variable for allowed hosts, fallback for local testing
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # ==============================
-# Application definition
+# Installed Apps
 # ==============================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -28,7 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'widget_tweaks',
-    'django.contrib.humanize',  # ← Add this line
+    'django.contrib.humanize',  # adds template filters
     'accounts',
     'transact1_regular_deposit',
     'transact2_loans',
@@ -44,6 +43,9 @@ INSTALLED_APPS = [
     'governance',
 ]
 
+# ==============================
+# Middleware
+# ==============================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -75,18 +77,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'solidarite_sjp2.wsgi.application'
 
 # ==============================
-# Database configuration
+# Database
 # ==============================
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get("DB_NAME", "ssjp2Database"),
-        'USER': os.environ.get("DB_USER", "root"),
-        'PASSWORD': os.environ.get("DB_PASSWORD", "Popos@2026"),
-        'HOST': os.environ.get("DB_HOST", "localhost"),
-        'PORT': os.environ.get("DB_PORT", "3306"),
+# If your host provides DATABASE_URL (like Render), you can parse it:
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # Local development fallback
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get("DB_NAME", "ssjp2Database"),
+            'USER': os.environ.get("DB_USER", "root"),
+            'PASSWORD': os.environ.get("DB_PASSWORD", ""),
+            'HOST': os.environ.get("DB_HOST", "localhost"),
+            'PORT': os.environ.get("DB_PORT", "3306"),
+        }
+    }
 
 # ==============================
 # Password validation
@@ -107,16 +117,20 @@ USE_I18N = True
 USE_TZ = True
 
 # ==============================
-# Custom user model
+# Custom User Model
 # ==============================
 AUTH_USER_MODEL = 'accounts.User'
 
 # ==============================
-# Static files
+# Static Files
 # ==============================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic
+STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic in production
+
+# Optional: enable WhiteNoise for serving static files in production
+if not DEBUG:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # ==============================
 # Login / Logout
