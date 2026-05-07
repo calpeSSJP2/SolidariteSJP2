@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="mb-3"> <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back to dashboard
+    </a>
+</div>
+
+<h2>Current Leadership List</h2>
+
+<p>Total Active Leaders: {{ total_leaders }}</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Started On</th>
+            <th>Leader Name</th>
+            <th>Role</th>
+            <th>Election</th>
+            <th>Status</th>
+            <th>Ended On</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for leader in current_leaders %}
+        <tr>
+            <td>{{ leader.started_on }}</td>
+
+            <td>
+                {{ leader.user.get_full_name }}
+            </td>
+
+            <td>
+                {{ leader.get_role_display }}
+            </td>
+
+            <td>
+                {% if leader.election %}
+                    {{ leader.election.name }}
+                {% else %}
+                    Appointed
+                {% endif %}
+            </td>
+
+            <td>
+                {% if leader.is_active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+            </td>
+
+            <td>
+                {{ leader.ended_on|default:"—" }}
+            </td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="6">No active leaders found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

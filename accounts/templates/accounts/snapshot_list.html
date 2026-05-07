@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <!-- Header with title and back button -->
+      <h3 style="margin: 0;">Account Status Snapshots</h3>
+      <a href="{% url 'accounts:officer-dashboard' %}" class="btn btn-secondary">
+        ← Back to dashboard
+      </a>
+    </div>
+
+    <!-- Filter form -->
+    <form method="get" class="my-3 row g-2 align-items-center">
+      <div class="col-auto">
+        <label for="year" class="form-label">Year</label>
+        <input type="number" name="year" id="year" class="form-control" value="{{ request.GET.year }}">
+      </div>
+      <div class="col-auto">
+        <label for="month" class="form-label">Month</label>
+        <input type="number" name="month" id="month" min="1" max="12" class="form-control" value="{{ request.GET.month }}">
+      </div>
+      <div class="col-auto mt-4">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'accounts:snapshot-list' %}" class="btn btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Account</th>
+          <th>Year</th>
+          <th>Month</th>
+          <th>Status</th>
+          <th>Days in Status</th>
+          <th>Months Fraction</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for snapshot in object_list %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ snapshot.account }}</td>
+          <td>{{ snapshot.year }}</td>
+          <td>{{ snapshot.month }}</td>
+          <td>{{ snapshot.get_status_type_display }}</td>
+          <td>{{ snapshot.days_in_status }}</td>
+          <td>{{ snapshot.months_fraction }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No snapshots found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Pagination controls -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div>
+        Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} snapshots
+      </div>
+
+      <nav aria-label="Page navigation">
+        <ul class="pagination mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}">&laquo; First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}">Previous</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}">Last &raquo;</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+          <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}

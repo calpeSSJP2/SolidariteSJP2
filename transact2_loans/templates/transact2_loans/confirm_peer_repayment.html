@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-3"> Unpaid Peer-to-Peer Loans</h3>
+  <p>
+    You still owe other members. You must repay them first before applying your payment
+    to SSJP2 loan.
+  </p>
+
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Loan ID</th>
+        <th>Lender</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for loan in unpaid_peer_loans %}
+      <tr>
+        <td>{{ loan.id }}</td>
+        <td>{{ loan.lender__member_id }}</td>
+        <td>₱{{ loan.amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_peer_payment" value="yes">
+    <input type="hidden" name="amount" value="{{ amount }}">
+    <button type="submit" class="btn btn-primary">
+      Confirm and Repay Peer Loans
+    </button>
+    <a href="{% url 'transact2_loans:loan_detail' loan.id %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm p-4">
+    <h2>{{ title }}</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary mt-2">{{ button_label }}</button>
+    </form>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+
+<script>
+$(document).ready(function(){
+    $('.datepicker').datepicker({
+        format: 'dd/mm/yyyy',
+        autoclose: true,
+        todayHighlight: true
+    });
+
+    function calculatePenalties() {
+        let amountPaid = parseFloat($('#id_amount').val()) || 0;
+        let shares = parseInt($('#id_account option:selected').data('shares')) || 0;
+        let baseAmount = 5000;  // BASE_AMOUNT_PER_SHARE
+        let dueDateStr = $('#id_due_date').val();
+        let paidOnStr = $('#id_paid_on').val();
+
+        if (!dueDateStr || !paidOnStr || shares === 0) return;
+
+        // Parse dates dd/mm/yyyy
+        let partsDue = dueDateStr.split('/');
+        let partsPaid = paidOnStr.split('/');
+        let dueDate = new Date(partsDue[2], partsDue[1]-1, partsDue[0]);
+        let paidOn = new Date(partsPaid[2], partsPaid[1]-1, partsPaid[0]);
+
+        let delayMonths = (paidOn.getFullYear() - dueDate.getFullYear())*12 + (paidOn.getMonth() - dueDate.getMonth());
+        if (delayMonths < 0) delayMonths = 0;
+
+        let amountDue = shares * baseAmount * (delayMonths || 1);
+        let unpaid = Math.max(amountDue - amountPaid, 0);
+
+        let flatPenalty = 500 * delayMonths * shares;  // FLAT_PENALTY_PER_MONTH
+        let percentPenalty = unpaid * 0.01 * delayMonths;  // UNDERPAYMENT_PENALTY_RATE
+
+        let totalPenalty = flatPenalty + percentPenalty;
+
+        $('#id_flat_penalty').val(flatPenalty.toFixed(2));
+        $('#id_percent_penalty').val(percentPenalty.toFixed(2));
+        $('#id_total_penalty').val(totalPenalty.toFixed(2));
+        $('#id_total_due').val((amountDue + totalPenalty).toFixed(2));
+    }
+
+    // Trigger calculation on relevant field changes
+    $('#id_amount, #id_due_date, #id_paid_on, #id_account').on('change keyup', calculatePenalties);
+});
+</script>
+
+{% if transaction_type == "deposit" %}
+<div class="form-group">
+  <label>Flat Penalty</label>
+  {{ form.flat_penalty }}
+</div>
+<div class="form-group">
+  <label>Underpayment Penalty</label>
+  {{ form.percent_penalty }}
+</div>
+<div class="form-group">
+  <label>Total Penalty</label>
+  {{ form.total_penalty }}
+</div>
+<div class="form-group">
+  <label>Total Amount Due</label>
+  {{ form.total_due }}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                📊 Loan Workflow Dashboard
+            </h2>
+            <p class="text-muted mb-0">
+                Monitor and manage all active loan workflow stages.
+            </p>
+        </div>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-4 mb-4">
+
+        <!-- SUBMITTED -->
+        <div class="col-md-2 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+                <div class="card-body text-center">
+                    <div class="fs-5 fw-semibold mb-2">
+                        Submitted
+                    </div>
+                    <div class="display-6 fw-bold">
+                        {{ submitted_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OFFICER REVIEW -->
+        <div class="col-md-2 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 bg-warning">
+                <div class="card-body text-center">
+                    <div class="fs-5 fw-semibold mb-2">
+                        Officer Review
+                    </div>
+                    <div class="display-6 fw-bold">
+                        {{ officer_review_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANAGER REVIEW -->
+        <div class="col-md-2 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 bg-info text-white">
+                <div class="card-body text-center">
+                    <div class="fs-5 fw-semibold mb-2">
+                        Manager Review
+                    </div>
+                    <div class="display-6 fw-bold">
+                        {{ manager_review_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISBURSED -->
+        <div class="col-md-2 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 bg-success text-white">
+                <div class="card-body text-center">
+                    <div class="fs-5 fw-semibold mb-2">
+                        Disbursed
+                    </div>
+                    <div class="display-6 fw-bold">
+                        {{ disbursed_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLOSED -->
+        <div class="col-md-2 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 bg-dark text-white">
+                <div class="card-body text-center">
+                    <div class="fs-5 fw-semibold mb-2">
+                        Closed
+                    </div>
+                    <div class="display-6 fw-bold">
+                        {{ closed_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- WORKFLOW TABLE -->
+    <div class="card border-0 shadow-sm">
+
+        <!-- CARD HEADER -->
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-semibold">
+                    📁 Active Workflow Documents
+                </h5>
+
+                <span class="badge bg-secondary">
+                    {{ pending_workflows|length }} Active
+                </span>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3">Loan</th>
+                            <th class="py-3">Stage</th>
+                            <th class="py-3">Handler</th>
+                            <th class="py-3">Days in Stage</th>
+                            <th class="py-3">Last Updated</th>
+                            <th class="text-center py-3">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for wf in pending_workflows %}
+
+                        <tr>
+
+                            <!-- LOAN -->
+                            <td class="px-4">
+                                <div class="fw-semibold">
+                                    Loan #{{ wf.loan.id }}
+                                </div>
+
+                                <small class="text-muted">
+                                    Workflow ID: {{ wf.id }}
+                                </small>
+                            </td>
+
+                            <!-- STAGE -->
+                            <td>
+                                {% if wf.stage == "submitted" %}
+                                    <span class="badge bg-primary">
+                                        {{ wf.get_stage_display }}
+                                    </span>
+
+                                {% elif wf.stage == "officer_review" %}
+                                    <span class="badge bg-warning text-dark">
+                                        {{ wf.get_stage_display }}
+                                    </span>
+
+                                {% elif wf.stage == "manager_review" %}
+                                    <span class="badge bg-info text-dark">
+                                        {{ wf.get_stage_display }}
+                                    </span>
+
+                                {% elif wf.stage == "disbursed" %}
+                                    <span class="badge bg-success">
+                                        {{ wf.get_stage_display }}
+                                    </span>
+
+                                {% else %}
+                                    <span class="badge bg-dark">
+                                        {{ wf.get_stage_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- HANDLER -->
+                            <td>
+                                {% if wf.handler %}
+                                    <span class="fw-medium">
+                                        {{ wf.handler }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">
+                                        Not assigned
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- DAYS -->
+                            <td>
+                                <span class="fw-semibold">
+                                    {{ wf.days_in_current_stage }}
+                                </span>
+                                day{{ wf.days_in_current_stage|pluralize }}
+                            </td>
+
+                            <!-- LAST UPDATED -->
+                            <td>
+                                <div>
+                                    {{ wf.moved_at|date:"M d, Y" }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ wf.moved_at|time:"H:i" }}
+                                </small>
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td class="text-center">
+
+                                <div class="d-flex gap-2 justify-content-center">
+
+                                    <!-- VIEW -->
+                                    <a href="{% url 'transact2_loans:workflow-detail' wf.loan.id %}"
+                                       class="btn btn-sm btn-outline-primary">
+
+                                        Timeline
+                                    </a>
+
+                                    <!-- MOVE -->
+                                    <a href="{% url 'transact2_loans:workflow-move' wf.id %}"
+                                       class="btn btn-sm btn-warning text-dark">
+
+                                        Move Stage
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+
+                                <div class="text-muted">
+
+                                    <div class="fs-1 mb-3">
+                                        📭
+                                    </div>
+
+                                    <h5>
+                                        No workflow documents found
+                                    </h5>
+
+                                    <p class="mb-0">
+                                        There are currently no active workflows.
+                                    </p>
+
+                                </div>
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

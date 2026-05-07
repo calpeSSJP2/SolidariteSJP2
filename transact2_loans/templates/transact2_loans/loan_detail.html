@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- =========================
+           LEFT SVG
+      ========================== -->
+      <div class="col-md-3 d-flex align-items-center justify-content-center bg-light p-3">
+
+        <svg width="240" height="240" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <circle cx="180" cy="180" r="140"
+                  stroke="#198754" stroke-width="3" fill="none"/>
+
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(25,135,84,0.08)"/>
+
+          <text x="155" y="120" font-size="30">💰</text>
+          <text x="210" y="160" font-size="26">📊</text>
+          <text x="150" y="220" font-size="26">🏦</text>
+          <text x="210" y="240" font-size="28">💳</text>
+
+        </svg>
+
+      </div>
+
+      <!-- =========================
+           MAIN CONTENT
+      ========================== -->
+      <div class="col-md-6 p-4" style="background: linear-gradient(135deg,#f8f9fa,#ffffff);">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <h4 class="fw-bold text-primary mb-1">Loan Details</h4>
+
+            <a href="{{ request.user.dashboard_url }}" class="btn btn-outline-secondary btn-sm mb-3">
+          ← Go back to dashboard
+        </a>
+        </div>
+ <small class="text-muted">Full overview of loan performance and status</small>
+
+
+        <!-- =========================
+             SUMMARY CARD
+        ========================== -->
+        <div class="card border-0 shadow-sm rounded-3 mb-3">
+          <div class="card-body">
+
+            <p><strong>Member:</strong> {{ loan.account.member.user.get_full_name }}</p>
+            <p><strong>Account:</strong> {{ loan.account.account_number }}</p>
+            <p><strong>Loan Type:</strong> {{ loan.get_loan_type_display }}</p>
+
+            <p><strong>Amount:</strong> {{ loan.amount|floatformat:2 }}</p>
+            <p><strong>Interest:</strong> {{ loan.interest_amount|floatformat:2 }}</p>
+            <p><strong>Total Payable:</strong> {{ loan.total_payable|floatformat:2 }}</p>
+
+            <p>
+              <strong>Paid:</strong>
+              {{ loan.total_paid|floatformat:2 }}
+              <span class="text-muted">({{ paid_ratio_percent|floatformat:2 }}%)</span>
+            </p>
+
+            <p><strong>Balance:</strong> {{ loan.balance|floatformat:2 }}</p>
+
+            <!-- STATUS -->
+            <p class="mt-2">
+              <strong>Status:</strong>
+
+              {% if loan.status == 'pending' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+
+              {% elif loan.status == 'approved' %}
+                <span class="badge bg-primary">Approved</span>
+
+              {% elif loan.status == 'active' %}
+                <span class="badge bg-info text-dark">Active</span>
+
+              {% elif loan.status == 'paid' %}
+                <span class="badge bg-success">Fully Paid</span>
+
+              {% elif loan.status == 'rejected' %}
+                <span class="badge bg-danger">Rejected</span>
+                {% if loan.rejected_reason %}
+                  <div class="text-danger mt-2 small">
+                    {{ loan.rejected_reason }}
+                  </div>
+                {% endif %}
+              {% endif %}
+            </p>
+
+          </div>
+        </div>
+
+        <!-- =========================
+             ACTIONS
+        ========================== -->
+        {% if can_approve or can_reject %}
+        <div class="d-flex gap-2 mb-3">
+
+          {% if can_approve %}
+          <form method="post" action="{% url 'transact2_loans:loan_approve' loan.id %}">
+            {% csrf_token %}
+            <button class="btn btn-success btn-sm">Approve</button>
+          </form>
+          {% endif %}
+
+          {% if can_reject %}
+          <button class="btn btn-danger btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#rejectLoanModal">
+            Reject
+          </button>
+          {% endif %}
+
+        </div>
+        {% endif %}
+
+        <!-- TOPUP -->
+        {% if can_topup %}
+          <a href="{% url 'transact2_loans:loan_topup' loan_id=loan.id %}"
+             class="btn btn-warning btn-sm mb-3">
+            Request Top-Up
+          </a>
+        {% else %}
+          <div class="alert alert-warning py-2 small">
+            ⚠ Top-up available after partial repayment.
+          </div>
+        {% endif %}
+
+        <!-- PAYMENT HISTORY -->
+        <h5 class="mt-3">Payment History</h5>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mt-2">
+
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Delay</th>
+                <th>Penalty</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for payment in loan.payments.all %}
+              <tr>
+                <td>{{ payment.paid_on|date:"M d, Y" }}</td>
+                <td class="text-success">{{ payment.amount|floatformat:2 }}</td>
+                <td>{{ payment.delay_time }}</td>
+                <td>
+                  {% if payment.penalty_applied %}
+                    <span class="badge bg-danger">Yes</span>
+                  {% else %}
+                    <span class="badge bg-secondary">No</span>
+                  {% endif %}
+                </td>
+                <td>{{ payment.receipt_ref_no }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  No payments yet.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+
+      <!-- =========================
+           RIGHT SVG
+      ========================== -->
+      <div class="col-md-3 d-flex align-items-center justify-content-center bg-light p-3">
+
+        <svg width="240" height="240" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <circle cx="180" cy="180" r="140"
+                  stroke="#0d6efd" stroke-width="3" fill="none"/>
+
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(13,110,253,0.08)"/>
+
+          <text x="150" y="120" font-size="30">📈</text>
+          <text x="210" y="160" font-size="26">📅</text>
+          <text x="150" y="220" font-size="26">🧾</text>
+          <text x="210" y="240" font-size="28">🏦</text>
+
+        </svg>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

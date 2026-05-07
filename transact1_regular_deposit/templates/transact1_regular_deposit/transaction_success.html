@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="alert alert-success mt-4">
+    <h4>Transaction Successful 🎉</h4>
+    <p>Your {{ transaction_type|default:"transaction" }} has been completed successfully.</p>
+    <a href="{% url 'transact1_regular_deposit:teller-deposit-search' %}" class="btn btn-success">Make Another Deposit</a>
+    <a href="{% url 'transact1_regular_deposit:teller-withdraw-search' %}" class="btn btn-secondary">Withdraw Funds</a>
+    <a href="{% url 'transact1_regular_deposit:teller-transfer-search' %}" class="btn btn-info">Transfer Funds</a>
+  </div>
+<a href="{{ request.user.dashboard_url }}" class="btn btn-secondary"> ← Back to dashboard
+    </a> <!--to go to manager dashaboard it reuires login-->
+{% endblock %}

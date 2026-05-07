@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Team Auditors{% endblock %}
+
+{% block sidebar %}
+<h5 class="px-3 mt-3">Main Menu</h5>
+
+<!-- Basic links -->
+
+
+<hr class="my-2">
+
+<!-- Collapsible Sections -->
+<div class="accordion" id="sidebarAccordion">
+       <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingabout">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="false" aria-controls="collapseAbout">
+                 🧾 About
+            </button>
+        </h2>
+        <div id="collapseAbout" class="accordion-collapse collapse" aria-labelledby="headingAbout" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+                <a href="" class="nav-link px-3">📜 History</a>
+                <a href="" class="nav-link px-3">👥 Current Staff</a>
+             </div>
+        </div>
+    </div>
+
+      <!-- Loan Management aproval -->
+    <!-- Repond Auitors -->
+ <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingAudit">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAudit" aria-expanded="false" aria-controls="collapseLoan">
+                🕵️‍♂️ Audit Communication
+            </button>
+        </h2>
+        <div id="collapseAudit" class="accordion-collapse collapse" aria-labelledby="headingAudit" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+            <a href="" class="nav-link px-3">🕵️‍♂️ View Auditor Comments</a>
+            <a href="" class="nav-link px-3">✉️ Respond to Questions</a>
+            <a href="" class="nav-link px-3">✅ Submit Clarification</a>
+            <a href="" class="nav-link px-3">📁 View Audit History</a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Reports -->
+    <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingReports">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReports" aria-expanded="false" aria-controls="collapseReports">
+                📁 Reports
+            </button>
+        </h2>
+        <div id="collapseReports" class="accordion-collapse collapse" aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+                <a href="" class="nav-link px-3">📄 OPERATION on IT account/finance</a>
+                <a href="" class="nav-link px-3">📄 Account Reports</a>
+                <a href="" class="nav-link px-3">📊 Transaction Reports</a>
+                <a href="" class="nav-link px-3">📋 Loan Reports</a>
+                <a href="" class="nav-link px-3">📁 Share Reports</a>
+                <a href="" class="nav-link px-3">📅 Daily/Monthly</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Welcome, {{ user.get_full_name|default:user.username }}!</h1>
+<div class="alert alert-info">
+<p class="lead">Current {{ user.get_role_display }} at Solidarité Saint Jean Paul 2.</p>
+Dear {{ user.get_full_name}}, Use the sidebar to navigate and manage your operations.
+</div>
+{% endblock %}

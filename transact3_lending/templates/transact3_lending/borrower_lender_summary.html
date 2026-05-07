@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+    <h2>Loan Summary</h2>
+
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back
+    </a>
+</div>
+
+<!-- Search -->
+<form method="get" class="row mb-4 mt-3">
+    <div class="col-md-4">
+        <input
+            type="text"
+            name="search"
+            value="{{ search_query }}"
+            class="form-control"
+            placeholder="Search borrower or lender..."
+        >
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Search</button>
+    </div>
+</form>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Total Borrowed</h6>
+                <h4>{{ total_borrowed|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Total Paid</h6>
+                <h4>{{ total_paid|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Outstanding</h6>
+                <h4>{{ total_outstanding|intcomma }}</h4>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Loans Table -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+
+        <table class="table table-hover mb-0">
+
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Lender</th>
+                    <th>Borrower</th>
+                    <th>Loan Amount</th>
+                    <th>Total Paid</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+
+                    <td>{{ loan.date }}</td>
+
+                    <td>
+                        {{ loan.lender.member.user.first_name }}
+                        {{ loan.lender.member.user.last_name }}
+                    </td>
+
+                    <td>
+                        {{ loan.borrower.member.user.first_name }}
+                        {{ loan.borrower.member.user.last_name }}
+                    </td>
+
+                    <td>{{ loan.amount|intcomma }}</td>
+
+                    <td>{{ loan.total_paid|intcomma }}</td>
+
+                    <td>{{ loan.remaining_balance|intcomma }}</td>
+
+                    <td>
+                        {% if loan.is_fully_paid %}
+                            <span class="badge bg-success">Paid</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Ongoing</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        No loans found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+<!-- Pagination -->
+{% include "transact3_lending/pagination.html" %}
+
+{% endblock %}

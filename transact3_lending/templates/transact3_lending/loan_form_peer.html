@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- ====================================== -->
+      <!-- LEFT SIDE: SVG -->
+      <!-- ====================================== -->
+      <div class="col-md-4 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="320" height="320" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(255,255,255,0.12)"/>
+
+          <g fill="#198754">
+            <circle cx="170" cy="160" r="8"/>
+            <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+            <circle cx="150" cy="175" r="7"/>
+            <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+            <circle cx="190" cy="175" r="7"/>
+            <rect x="184" y="183" width="12" height="18" rx="5"/>
+          </g>
+
+          <text x="160" y="150" font-size="28">🎼</text>
+
+          <g transform="translate(140,150) scale(-1,1)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <g transform="translate(220,150)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <text x="180" y="220" font-size="24" text-anchor="middle">✝️</text>
+          <text x="170" y="40" font-size="34">🎼</text>
+          <text x="290" y="180" font-size="20" fill="#198754">RWF</text>
+          <text x="175" y="345" font-size="34">🏠</text>
+          <text x="40" y="185" font-size="34">🤝</text>
+
+        </svg>
+
+      </div>
+
+      <!-- ====================================== -->
+      <!-- RIGHT SIDE: FORM -->
+      <!-- ====================================== -->
+      <div class="col-md-8 p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+  <h4 class="fw-bold text-primary mb-0">
+    Create Peer Loan
+  </h4>
+
+  <a href="{{ request.user.dashboard_url }}"
+     class="btn btn-outline-secondary btn-sm">
+    ← Back to dashboard
+  </a>
+
+</div>
+
+        <!-- FORM CARD -->
+        <div class="card shadow-sm border-0">
+
+          <div class="card-body">
+
+            <form method="post" enctype="multipart/form-data">
+
+              {% csrf_token %}
+
+              <!-- NON FIELD ERRORS -->
+              {% if form.non_field_errors %}
+                <ul class="text-danger small">
+                  {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              <!-- FORM -->
+              {{ form.as_p }}
+
+              <!-- ACTIONS -->
+              <div class="d-flex gap-2 mt-3">
+
+                <button type="submit" class="btn btn-primary">
+                  Create Loan
+                </button>
+
+
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <hr class="my-4">
+
+<h5 class="fw-bold text-secondary">Peer to Peer Loan Records</h5>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-hover align-middle">
+
+    <thead class="table-light">
+      <tr>
+        <th>Date</th>
+        <th>Borrower</th>
+        <th>Lender</th>
+        <th>Amount</th>
+        <th>Paid</th>
+        <th>Unpaid</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for loan in page_obj %}
+        <tr>
+          <td>{{ loan.date }}</td>
+          <td>{{ loan.borrower.member.user.get_full_name }}</td>
+          <td>{{ loan.lender.member.user.get_full_name }}</td>
+          <td>{{ loan.amount }}</td>
+          <td>{{ loan.total_paid }}</td>
+          <td>{{ loan.remaining_balance }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted">
+            No loans available
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+  {% include "transact3_lending/pagination.html" %}
+</div>
+
+</div>
+
+{% endblock %}

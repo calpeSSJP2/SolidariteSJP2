@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %} Manager Dashbord{% endblock %}
+
+{% block sidebar %}
+<h5 class="px-3 mt-3">Main Menu</h5>
+<hr class="my-2">
+
+<style>
+  .accordion-button {
+    border-radius: 12px;
+    border: none;
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0;
+    transition: background-color 0.3s ease;
+  }
+
+  #headingMain .accordion-button {
+    background-color: #17a2b8;
+    color: white;
+  }
+
+  #headingOps .accordion-button {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .accordion-button:hover,
+  .accordion-button:focus {
+    background-color: #138496;
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .accordion-button.collapsed {
+    background-color: inherit;
+    color: inherit;
+  }
+</style>
+
+<!-- Sidebar Accordion -->
+<div class="accordion" id="sidebarAccordion">
+
+  <!-- About -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingAbout">
+      <button class="accordion-button collapsed bg-info" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseAbout"
+              aria-expanded="false" aria-controls="collapseAbout">
+        🧾 About
+      </button>
+    </h2>
+    <div id="collapseAbout" class="accordion-collapse collapse"
+         aria-labelledby="headingAbout" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="#" class="nav-link px-3">📜 History</a>
+        <a href="#" class="nav-link px-3">👥 Current Staff</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Settings -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingMain">
+      <button class="accordion-button collapsed bg-secondary text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseMain"
+              aria-expanded="false" aria-controls="collapseMain">
+        ⚙️ Account Setting
+      </button>
+    </h2>
+    <div id="collapseMain" class="accordion-collapse collapse"
+         aria-labelledby="headingMain" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="{% url 'accounts:register' %}" class="nav-link px-3">➕ Register Members</a>
+        <a href="{% url 'accounts:profile-edit' %}" class="nav-link px-3">❌Edit Profile</a>
+          <a href="{% url 'accounts:password_reset'%}" class="nav-link px-3"> ❌ Change Password </a>
+        <a href="{% url 'accounts:sjp2create_profile' %}" class="nav-link px-3">➕ Register SSJP2</a>
+
+        <a href="{% url 'accounts:member_account-create' %}" class="nav-link px-3">➕ Member Account</a>
+        <a href="{% url 'accounts:member_account-actions' %}" class="nav-link px-3">🛠️ Member Account Actions</a>
+        <a href="{% url 'accounts:sjp2account-create' %}" class="nav-link px-3">➕ SSJP2 Account</a>
+        <a href="{% url 'accounts:ssjp2_account-actions' %}" class="nav-link px-3">🛠️ SSJP2 Account Actions</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regular Operations -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingOps">
+      <button class="accordion-button collapsed bg-success text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseOps"
+              aria-expanded="false" aria-controls="collapseOps">
+        💼 Regular Operations
+      </button>
+    </h2>
+    <div id="collapseOps" class="accordion-collapse collapse"
+         aria-labelledby="headingOps" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="" class="nav-link px-3">💰 WHICH oNE</a>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Loan Management -->
+<div class="accordion-item border-0">
+  <h2 class="accordion-header" id="headingLoan">
+    <button class="accordion-button collapsed bg-primary text-white" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseLoan"
+            aria-expanded="false" aria-controls="collapseLoan">
+      💳 Approval Management
+    </button>
+  </h2>
+
+  <div id="collapseLoan" class="accordion-collapse collapse"
+       aria-labelledby="headingLoan" data-bs-parent="#sidebarAccordion">
+    <div class="accordion-body py-2 px-3">
+
+      <!-- Always available -->
+      <a href="" class="nav-link px-3"> 📝 Request Loan Approval/reject </a>
+       <!-- This is for all  -->
+      <a href="{% url 'transact2_loans:member_loan_list' %}"
+         class="nav-link px-3"> 💵 Approve Loan   </a>
+        <!-- This is for all  -->
+      <a href="{% url 'transact5_share_distrib:pool-list'%}"
+         class="nav-link px-3"> 💵 Approve Annual Interest Distribution  </a>
+    </div>
+  </div>
+</div>
+  <!-- Lending Management -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingLend">
+      <button class="accordion-button collapsed bg-success text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseLend"
+              aria-expanded="false" aria-controls="collapseLend">
+        💼 Lending Management
+      </button>
+    </h2>
+    <div id="collapseLend" class="accordion-collapse collapse"
+         aria-labelledby="headingLend" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="{% url 'transact3_lending:peer_loan_list' %}" class="nav-link px-3">📄 Bollower / Lending List</a>
+                       </div>
+    </div>
+  </div>
+
+  <!-- Share Management -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingShares">
+      <button class="accordion-button collapsed bg-info text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseShares"
+              aria-expanded="false" aria-controls="collapseShares">
+        📊 Share Management
+      </button>
+    </h2>
+    <div id="collapseShares" class="accordion-collapse collapse"
+         aria-labelledby="headingShares" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="{% url 'transact4_share_mngt:share_trans_report' %}" class="nav-link px-3">🤝 Share report</a>
+           </div>
+    </div>
+  </div>
+
+<!-- Share Profit / Interest Distribution -->
+
+<div class="accordion-item border-0">
+  <h2 class="accordion-header" id="headingProfit">
+    <button class="accordion-button collapsed bg-warning text-dark" type="button"
+            data-bs-toggle="collapse" data-bs-target="#collapseProfit"
+            aria-expanded="false" aria-controls="collapseProfit">
+      💰 Share Profit
+    </button>
+  </h2>
+
+  <div id="collapseProfit" class="accordion-collapse collapse"
+       aria-labelledby="headingProfit" data-bs-parent="#sidebarAccordion">
+    <div class="accordion-body py-2 px-3">
+  <!-- Create Pool -->
+   <!-- View Pools -->
+  <a href="{% url 'transact5_share_distrib:pool-list' %}" class="nav-link px-3">
+    📊 View Interest Pools
+  </a>
+
+</div>
+
+  </div>
+</div>
+
+  <!-- Reports -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingReports">
+      <button class="accordion-button collapsed bg-secondary text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseReports"
+              aria-expanded="false" aria-controls="collapseReports">
+        📁 Reports and Views
+      </button>
+    </h2>
+    <div id="collapseReports" class="accordion-collapse collapse"
+         aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="{% url 'accounts:member_account-list' %}" class="nav-link px-3">📄 Account Reports</a>
+        <a href="{% url 'ledger:account_statement_list' %}" class="nav-link px-3">🧾 Statement Account</a>
+        <a href="{% url 'transact1_regular_deposit:transaction_list' %}" class="nav-link px-3">📊 SSJP2 Transfers</a>
+        <a href="{% url 'accounts:ssjp2_account-actions' %}" class="nav-link px-3">📄 SSJP2 Reports</a>
+        <a href="{% url 'transact2_loans:loan_list' %}" class="nav-link px-3">📋 Loan Reports</a>
+         <a href="{% url 'transact3_lending:peer_loan_list' %}" class="nav-link px-3">📄 Bollower / Lending List</a>
+            </div>
+    </div>
+  </div>
+
+  <!-- Audit Communication -->
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingAudit">
+      <button class="accordion-button collapsed bg-info text-white" type="button"
+              data-bs-toggle="collapse" data-bs-target="#collapseAudit"
+              aria-expanded="false" aria-controls="collapseAudit">
+        🕵️‍♂️ Audit Communication
+      </button>
+    </h2>
+    <div id="collapseAudit" class="accordion-collapse collapse"
+         aria-labelledby="headingAudit" data-bs-parent="#sidebarAccordion">
+      <div class="accordion-body py-2 px-3">
+        <a href="#" class="nav-link px-3">🕵️‍♂️ View Auditor Comments</a>
+              </div>
+    </div>
+  </div>
+
+</div> <!-- End of sidebar accordion -->
+
+ <!-- account settings -->
+    <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingMeeting">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMain" aria-expanded="false" aria-controls="collapseMain">
+                📅 Meeting Management”
+            </button>
+        </h2>
+        <div id="collapseMeeting" class="accordion-collapse collapse" aria-labelledby="headingMain" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+   <a href="" class="nav-link px-3"> 📝 meeting notes</a>
+     <a href="" class="nav-link px-3">🙋‍♂️Meeting attendance</a>
+      <a href="" class="nav-link px-3">📥 Upload Agenda</a>
+       <a href="" class="nav-link px-3">📥 share meeting decision</a>
+       <a href="" class="nav-link px-3">🗓️ Schedule Meeting</a>
+       <a href="" class="nav-link px-3">👁️ View Meetings</a>
+        <a href="" class="nav-link px-3">📝 Meeting Minutes</a>
+       <a href="" class="nav-link px-3">🗳️ Meeting Decision</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">"Dear {{ user.get_full_name|default:user.username }},👋 Welcome  {{ user.get_role_display }}!</h2>
+
+<!-- 2. Dashboard Statistics Section -->
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body text-primary">
+                <h6 class="card-title">Registered Accounts</h6>
+                <h3>{{ total_accounts }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-success">
+                <h6 class="card-title">Active Accounts</h6>
+                <h3>{{ active_accounts }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-success">
+                <h6 class="card-title">Total Shares</h6>
+                <h3>{{ total_shares }}</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-success">
+                <h6 class="card-title">Active Loans</h6>
+                <h3>{{ active_loans }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-warning shadow-sm">
+            <div class="card-body text-warning">
+                <h6 class="card-title">Peer Loans</h6>
+                <h3>{{ peer_loans }}</h3>
+            </div>
+        </div>
+    </div>
+<!-- 4. Overdue laons:The number of unpaid amount or  late or overdue.That date passed without payment. -->
+    <div class="col-md-4">
+        <div class="card border-danger shadow-sm">
+            <div class="card-body text-danger">
+                <h6 class="card-title">Overdue Loans</h6>
+                <h3>{{ overdue_loans.count }}</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 4. Members Financial Position -->
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-success">
+                <h6 class="card-title">Total Members Principal</h6>
+                <h4>{{ total_principal|floatformat:2|intcomma }} RWF</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-success">
+                <h6 class="card-title">Total Members Balance</h6>
+                <h4>{{ total_balance|floatformat:2|intcomma }} RWF</h4>
+            </div>
+        </div>
+    </div>
+
+
+
+
+<!-- 4. Loan Financial Overview -->
+
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">SSJP2 Loans </h5>
+                <p class="card-text">
+                    {{ total_loans_remaining|floatformat:2|intcomma }} RWF
+                </p>
+            </div>
+        </div>
+    </div>
+
+      <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Peer Loans</h5>
+                <p class="card-text">
+                    {{ total_peer_remaining|floatformat:2|intcomma }} RWF
+                </p>
+            </div>
+        </div>
+    </div>
+<div class="col-md-6 d-flex align-items-center justify-content-center" style="gap: 10cm;">
+  <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
+  <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
+</div>
+</div>
+
+<!-- Graph for Monthly Deposits -->
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- LEFT SIDE -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+
+        <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- CIRCLE TEXT PATH -->
+        <defs>
+          <path id="circlePath"
+                d="M 180,180
+                   m -120,0
+                   a 120,120 0 1,1 240,0
+                   a 120,120 0 1,1 -240,0" />
+        </defs>
+
+        <!-- OUTER CIRCLE -->
+        <circle cx="180" cy="180" r="135"
+                stroke="#198754"
+                stroke-width="3"
+                fill="none"/>
+
+        <!-- INNER CIRCLE -->
+        <circle cx="180" cy="180" r="60"
+                fill="rgba(25,135,84,0.08)"/>
+
+        <!-- ICON -->
+        <text x="170" y="190" font-size="40">💰</text>
+
+        <!-- USERS -->
+        <g fill="#198754">
+          <circle cx="160" cy="140" r="8"/>
+          <rect x="153" y="148" width="14" height="20" rx="6"/>
+
+          <circle cx="200" cy="140" r="8"/>
+          <rect x="193" y="148" width="14" height="20" rx="6"/>
+        </g>
+
+        <!-- TOP ICON -->
+        <text x="180" y="80" font-size="30" text-anchor="middle">🤝</text>
+
+        <!-- 🔥 CURVED TEXT -->
+        <text font-size="16" fill="#198754" font-weight="600">
+          <textPath href="#circlePath" startOffset="50%" text-anchor="middle">
+            Solidarity SJP2 • Financial Cooperative • Loan System • Gasabo • Jali
+          </textPath>
+        </text>
+
+      </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-white p-4">
+
+        <div class="card border-0 shadow-lg rounded-4 w-100" style="max-width: 420px;">
+
+          <div class="card-body p-4">
+
+            <div class="text-center mb-4">
+              <h3 class="fw-bold text-primary mb-1">Welcome Back</h3>
+              <p class="text-muted small mb-0">
+                Sign in to access your SSJP2 dashboard
+              </p>
+            </div>
+
+            <form method="post">
+              {% csrf_token %}
+
+
+                <label class="form-label fw-semibold text-dark">Username</label>
+              <div class="mb-3">
+                {{ form.username }}
+              </div>
+
+              <div class="mb-2">
+
+  <label class="form-label fw-semibold text-dark">Password</label>
+
+  <div class="input-group">
+    {{ form.password }}
+
+    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+      👁️
+    </button>
+  </div>
+
+</div>
+
+              <div class="text-end mb-4">
+                <a href="{% url 'accounts:password_reset' %}"
+                   class="text-primary small text-decoration-none">
+                  Forgot password?
+                </a>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center gap-2">
+  <!-- SIGN IN -->
+  <button type="submit"
+          class="btn btn-primary py-2 fw-semibold shadow-sm">
+    Sign In
+  </button>
+
+  <!-- LOGOUT -->
+  <a href="{% url 'accounts:logout' %}"
+     class="btn btn-outline-danger btn-sm">
+    Logout
+  </a>
+</div>
+
+            </form>
+
+
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("togglePassword");
+    const passwordInput = document.querySelector("input[type='password']");
+
+    toggle.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            toggle.innerText = "🙈";
+        } else {
+            passwordInput.type = "password";
+            toggle.innerText = "👁️";
+        }
+    });
+});
+</script>
+
+{% endblock %}

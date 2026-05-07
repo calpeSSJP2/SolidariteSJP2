@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+<div class="row g-0">
+
+  <!-- LEFT SIDE: SVG -->
+  <div class="col-md-5 d-flex align-items-center justify-content-center bg-light p-4">
+    <!-- (unchanged SVG) -->
+     <svg width="320" height="320" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(255,255,255,0.12)"/>
+
+          <g fill="#198754">
+            <circle cx="170" cy="160" r="8"/>
+            <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+            <circle cx="150" cy="175" r="7"/>
+            <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+            <circle cx="190" cy="175" r="7"/>
+            <rect x="184" y="183" width="12" height="18" rx="5"/>
+          </g>
+
+          <text x="160" y="150" font-size="28">🎼</text>
+
+          <g transform="translate(140,150) scale(-1,1)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <g transform="translate(220,150)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <text x="180" y="220" font-size="24" text-anchor="middle">✝️</text>
+          <text x="170" y="40" font-size="34">🎼</text>
+          <text x="290" y="180" font-size="20" fill="#198754">RWF</text>
+          <text x="175" y="345" font-size="34">🏠</text>
+          <text x="40" y="185" font-size="34">🤝</text>
+
+        </svg>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="col-md-7 p-4" style="background: linear-gradient(135deg, #f8f9fa, #eef5ff);">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+      <h4 class="fw-bold text-primary mb-1">Loan Management</h4>
+      <small class="text-muted">Manage loans, top-ups, and emergency requests</small>
+    </div>
+
+    <!-- BACK -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+      <a href="{{ request.user.dashboard_url }}"
+         class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        ← Back
+      </a>
+
+      <p class="text-muted mb-0 fw-semibold">
+        {{ member_account.member.user.get_full_name }}
+      </p>
+    </div>
+
+    {% if show_topup %}
+
+    <!-- TOP-UP -->
+    <div class="card mb-4 border-0 shadow-sm rounded-3">
+
+      <div class="card-header bg-success text-white text-center fw-semibold">
+        Top-Up Loan
+      </div>
+
+      <div class="card-body">
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="mb-1"><strong>Amount</strong></p>
+            <span class="text-primary fw-semibold">{{ loan.amount }}</span>
+
+            <p class="mt-3 mb-1"><strong>Balance</strong></p>
+            <span class="text-danger fw-semibold">{{ loan.balance }}</span>
+          </div>
+
+          <div class="col-md-6">
+            <p class="mb-1"><strong>Paid</strong></p>
+            <span class="text-success fw-semibold">
+              {{ loan.total_paid }} ({{ paid_ratio_percent|floatformat:2 }}%)
+            </span>
+          </div>
+        </div>
+
+        {% if paid_ratio_percent < 10 %}
+
+          <div class="alert alert-warning py-2">
+            Minimum 10% payment required before top-up.
+          </div>
+
+          <a href="{% url 'transact2_loans:loan_payment' member_account.id %}"
+             class="btn btn-primary btn-sm w-100">
+            Make Payment
+          </a>
+
+        {% else %}
+
+          <form method="post"
+                action="{% url 'transact2_loans:loan_topup' loan.pk %}">
+            {% csrf_token %}
+            {{ topup_form.as_p }}
+
+            <button type="submit" class="btn btn-success w-100 mt-2">
+              Request Top-Up
+            </button>
+          </form>
+
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- EMERGENCY -->
+    <div class="card mb-4 border-0 shadow-sm rounded-3">
+
+      <div class="card-header bg-dark text-white text-center fw-semibold">
+        Emergency Loan
+      </div>
+
+      <div class="card-body text-center">
+
+        <p class="text-muted small mb-3">
+          Quick access funds for urgent needs.
+        </p>
+
+        <a href="{% url 'transact2_loans:loan_create_emergency' member_account.id %}"
+           class="btn btn-outline-dark w-100 fw-semibold">
+          Request Emergency Loan
+        </a>
+
+      </div>
+    </div>
+
+    {% else %}
+
+    <!-- REGULAR LOAN -->
+    <div class="card mb-4 border-0 shadow-sm rounded-3">
+
+      <div class="card-header bg-primary text-white text-center fw-semibold">
+        New Regular Loan
+      </div>
+
+      <div class="card-body">
+
+        <form method="post"
+              action="{% url 'transact2_loans:loan_create' member_account.id %}">
+
+          {% csrf_token %}
+          {{ regular_form.as_p }}
+
+          <button type="submit" class="btn btn-primary w-100 mt-2">
+            Request Loan
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+
+    <!-- EMERGENCY -->
+    <div class="card mb-4 border-0 shadow-sm rounded-3">
+
+      <div class="card-header bg-danger text-white text-center fw-semibold">
+        Emergency Loan
+      </div>
+
+      <div class="card-body text-center">
+
+        <p class="text-muted small mb-3">
+          Emergency loans are for urgent financial needs.
+        </p>
+
+        <form method="post"
+      action="{% url 'transact2_loans:loan_create_emergency' member_account.id %}">
+  {% csrf_token %}
+
+  {{ emergency_form.as_p }}
+
+  <button type="submit" class="btn btn-outline-dark w-100 fw-semibold">
+    Request Emergency Loan
+  </button>
+</form>
+
+      </div>
+    </div>
+
+    {% endif %}
+
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- RECENT OPERATIONS -->
+
+  <div class="card shadow-sm mt-4 border-0 rounded-3">
+
+```
+<div class="card-header bg-dark text-white fw-semibold text-center">
+  Recent Loan Activity
+</div>
+
+<div class="table-responsive">
+  <table class="table table-hover table-sm mb-0 align-middle">
+
+    <thead class="table-light">
+      <tr>
+        <th>Loan Type</th>
+        <th>Amount</th>
+        <th>Paid</th>
+        <th>Balance</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for op in recent_ops %}
+      <tr>
+        <td>{{ op.loan.get_loan_type_display }}</td>
+        <td class="text-primary fw-semibold">{{ op.loan.amount }}</td>
+        <td class="text-success fw-semibold">{{ op.amount }}</td>
+        <td class="text-danger fw-semibold">{{ op.loan.balance }}</td>
+        <td class="text-muted small">{{ op.paid_on|date:"Y-m-d" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center text-muted p-3">
+          No recent payments found
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+
+  </table>
+</div>
+
+
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- LEFT SIDE: SVG -->
+      <div class="col-md-5 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- OUTER CIRCLE -->
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <!-- CENTER -->
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(255,255,255,0.12)"/>
+
+          <!-- COMMUNITY -->
+          <g fill="#198754">
+            <circle cx="170" cy="160" r="8"/>
+            <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+            <circle cx="150" cy="175" r="7"/>
+            <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+            <circle cx="190" cy="175" r="7"/>
+            <rect x="184" y="183" width="12" height="18" rx="5"/>
+          </g>
+
+          <!-- MUSIC -->
+          <text x="160" y="150" font-size="28">🎼</text>
+
+          <!-- DOVES -->
+          <g transform="translate(140,150) scale(-1,1)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <g transform="translate(220,150)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <!-- CROSS -->
+          <text x="180" y="220" font-size="24" text-anchor="middle">✝️</text>
+
+          <!-- EDUCATION -->
+          <text x="170" y="40" font-size="34">🎼</text>
+
+          <!-- FINANCE -->
+          <text x="290" y="180" font-size="20" fill="#198754">RWF</text>
+
+          <!-- HOUSING -->
+          <text x="175" y="345" font-size="34">🏠</text>
+
+          <!-- SOLIDARITY -->
+          <text x="40" y="185" font-size="34">🤝</text>
+
+        </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE: SEARCH + TABLE -->
+      <div class="col-md-7 p-4">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+                <h4 class="mb-0 fw-bold text-primary">{{ title }}</h4>
+                <small class="text-muted">Search and manage records</small>
+            </div>
+
+            <a href="{{ request.user.dashboard_url }}"
+               class="btn btn-outline-secondary btn-sm">
+                ← Back
+            </a>
+
+        </div>
+
+        <!-- SEARCH -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+
+                <form method="get">
+                    <div class="input-group input-group-lg">
+
+                        <input type="text"
+                               name="q"
+                               value="{{ query }}"
+                               placeholder="Search by name or account number..."
+                               class="form-control">
+
+                        <button class="btn btn-primary px-4">
+                            Search
+                        </button>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        {% if accounts %}
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-primary text-white">
+                Results ({{ accounts|length }})
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Account Number</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for acc in accounts %}
+                        <tr>
+
+                            <td class="fw-semibold">
+                                {{ acc.member.user.get_full_name }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ acc.account_number }}
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                {% if action_url_name %}
+                                    <a class="btn btn-sm btn-{{ button_color }}"
+                                       href="{% url action_url_name acc.id %}">
+                                        {{ button_text }}
+                                    </a>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+
+        {% elif query %}
+
+        <div class="alert alert-warning mt-3 shadow-sm">
+            ❌ No customer found for: <strong>{{ query }}</strong>
+        </div>
+
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

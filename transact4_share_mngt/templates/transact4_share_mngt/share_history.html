@@ -1,0 +1,25 @@
+<!-- transact4_share_mngt/share_history.html -->
+
+<h2>{{ title }}</h2>
+<div class="mb-3">
+<h3>Share Increases</h3>
+
+<!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">  ← Back to dashboard  </a>
+</div>
+<ul>
+  {% for tx in increases %}
+    <li>{{ tx.timestamp }} - Increased {{ tx.nbr_share }} shares</li>
+  {% empty %}
+    <li>No share increases found.</li>
+  {% endfor %}
+</ul>
+
+<h3>Share Decreases</h3>
+<ul>
+  {% for tx in decreases %}
+    <li>{{ tx.timestamp }} - Decreased {{ tx.nbr_share }} shares</li>
+  {% empty %}
+    <li>No share decreases found.</li>
+  {% endfor %}
+</ul>

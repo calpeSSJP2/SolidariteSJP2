@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% block title %}SSJP2 Members' Dashboard {% endblock %}
+
+{% block sidebar %}
+<h5 class="px-3 mt-3">Main Menu</h5>
+<!-- Basic links -->
+<hr class="my-2">
+<!-- Collapsible Sections -->
+<div class="accordion" id="sidebarAccordion">
+       <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingabout">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="false" aria-controls="collapseAbout">
+                 🧾 About
+            </button>
+        </h2>
+        <div id="collapseAbout" class="accordion-collapse collapse" aria-labelledby="headingAbout" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+                <a href="" class="nav-link px-3">📜 History</a>
+                <a href="{% url 'governance:dashboard' %}" class="nav-link px-3"> 👑 Current leaders </a>
+             </div>
+        </div>
+    </div>
+
+      <!-- Loan Management -->
+     <!-- <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingDoc">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDoc" aria-expanded="false" aria-controls="collapseLoan">
+                📤 Required Forms to Upload
+            </button>
+        </h2>
+
+        <div id="collapseDoc" class="accordion-collapse collapse" aria-labelledby="headingDoc" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+              <a href="" class="nav-link px-3">📄 Forms for loan requests</a>
+            <a href="" class="nav-link px-3">🔁 Forms for Topup</a>
+            <a href="" class="nav-link px-3">🚨 Forms for Emergency </a>
+            <a href="" class="nav-link px-3">🙋  Forms for permission</a>
+        </div>
+    </div>
+    </div>-->
+    <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingLoan">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLoan" aria-expanded="false" aria-controls="collapseReports">
+                📁 Loan Tracking
+            </button>
+        </h2>
+        <div id="collapseLoan" class="accordion-collapse collapse" aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+               <a href="{% url 'transact4_share_mngt:share_trans_report' %}" class="nav-link px-3">🤝 shares statement </a>
+                   {% for loan in loans %}
+                <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"
+              class="nav-link px-3">   🔎 Track Loan #{{ loan.id }}</a>
+              {% empty %}
+
+<p class="px-3 text-muted">
+    No loans available.
+</p>
+
+{% endfor %}
+            </div>
+            </div>
+        </div>
+
+    <!-- Reports personal  -->
+    <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="headingReports">
+            <button class="accordion-button collapsed bg-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReports" aria-expanded="false" aria-controls="collapseReports">
+                📁 Persornal Reports
+            </button>
+        </h2>
+        <div id="collapseReports" class="accordion-collapse collapse" aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
+            <div class="accordion-body py-2 px-3">
+                <a href="{% url 'accounts:member_account-list' %}"  class="nav-link px-3">📄 Account </a>
+                 <a href="{% url 'ledger:account_statement_list' %}" class="nav-link px-3">🧾  Finance ops  Statement</a>
+                <a href="{% url 'transact2_loans:loan_type_summary' %}"  class="nav-link px-3"> 💵 Unpaid SSJP2 Loans </a>
+                <a href="{% url 'transact3_lending:borrower_lender_summary' %}" class="nav-link px-3">🔁 Unpaid Peer to Peer loans</a>
+                   <a href="{% url 'transact4_share_mngt:share_trans_report' %}" class="nav-link px-3">🤝 shares statement </a>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+{% block content %}
+<div class="text-center my-3">
+    <div class="card shadow-sm border-0 p-0">
+
+        <h3 class="fw-bold mb-2">
+            👋 Welcome, {{ user.get_full_name|default:user.username }}
+        </h3>
+
+
+    </div>
+</div>
+
+<div class="container-fluid px-4">
+
+    <!-- MAIN CARD -->
+    <div class="card shadow-sm p-4">
+
+        <!-- 💰 ACCOUNT OVERVIEW -->
+        <h5 class="mb-3">Account Overview</h5>
+        <div class="row gy-4">
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-dark shadow-sm h-100">
+                    <div class="card-body">
+                        <h6>Account Status</h6>
+                        <h5>{{ account_status }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-info shadow-sm h-100">
+                    <div class="card-body text-info">
+                        <h6>Shares</h6>
+                        <h4>{{ shares }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-primary shadow-sm h-100">
+                    <div class="card-body text-primary">
+                        <h6>Principal</h6>
+                        <h4>{{ principal|floatformat:2|intcomma }} RWF</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body text-success">
+                        <h6>Current Balance</h6>
+                        <h4>{{ balance|floatformat:2|intcomma }} RWF</h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 🏦 LOANS SUMMARY -->
+        <h5 class="mt-5 mb-3">Loans Summary</h5>
+        <div class="row gy-4">
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card bg-danger text-white shadow-sm h-100">
+                    <div class="card-body">
+                        <h6>Active Loans</h6>
+                        <h3>{{ active_loans }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card bg-danger text-white shadow-sm h-100">
+                    <div class="card-body">
+                        <h6>Overdue Payments</h6>
+                        <h4>{{ overdue_loans.count }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card bg-info text-white shadow-sm h-100">
+                    <div class="card-body">
+                        <h6>Unpaid Loan</h6>
+                        <h4>{{ loan_remaining|floatformat:2|intcomma }} RWF</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-danger shadow-sm h-100">
+                    <div class="card-body text-danger">
+                        <h6>Unpaid Peer Loan</h6>
+                        <h4>{{ peer_remaining|floatformat:2|intcomma }} RWF</h4>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+     <!-- Images Section -->
+        <div class="row mt-4 justify-content-center">
+
+            <div class="col-12 col-md-8 d-flex justify-content-center gap-4">
+                <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded" style="max-height:200px;">
+                <img src="{% static 'mysite/images/FaFa.JPG' %}" class="img-fluid rounded" style="max-height:200px;">
+            </div>
+
+        </div>
+</div>
+
+<!-- 📊 Chart -->
+
+
+{% endblock %}

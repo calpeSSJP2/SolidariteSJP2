@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Account Details: {{ object.account_nbr }}</h2>
+  <p><strong>Purpose:</strong> {{ object.purpose }}</p>
+  <p><strong>Balance:</strong> {{ object.balance }}</p>
+  <p><strong>Created:</strong> {{ object.created_on }}</p>
+  <a href="{% url 'accounts:sjp2account-update' object.pk %}" class="btn btn-warning">Edit</a>
+{% endblock %}

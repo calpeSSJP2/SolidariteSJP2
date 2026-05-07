@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="row g-0">
+
+      <!-- LEFT SIDE: SVG -->
+      <div class="col-md-5 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- OUTER CIRCLE -->
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <!-- CENTER -->
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(25,135,84,0.08)"/>
+
+          <!-- MONEY ICON -->
+          <text x="170" y="190" font-size="40">💰</text>
+
+          <!-- USERS -->
+          <g fill="#198754">
+            <circle cx="160" cy="140" r="8"/>
+            <rect x="153" y="148" width="14" height="20" rx="6"/>
+
+            <circle cx="200" cy="140" r="8"/>
+            <rect x="193" y="148" width="14" height="20" rx="6"/>
+          </g>
+
+          <!-- HANDSHAKE -->
+          <text x="180" y="80" font-size="30" text-anchor="middle">🤝</text>
+
+          <!-- LOAN TEXT -->
+          <text x="180" y="330" font-size="20" text-anchor="middle" fill="#198754">
+            Loan Payment
+          </text>
+
+        </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="col-md-7 p-4">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h4 class="fw-bold text-primary mb-0">Loan Payment</h4>
+            <small class="text-muted">Process and manage repayments</small>
+          </div>
+
+          <a href="{{ request.user.dashboard_url }}"
+             class="btn btn-outline-secondary btn-sm">
+              ← Back
+          </a>
+        </div>
+
+        <!-- MEMBER INFO -->
+        <div class="alert alert-light border shadow-sm">
+            <strong>Member:</strong>
+            {{ member_account.member.user.get_full_name }}
+            <span class="badge bg-secondary">
+                {{ member_account.account_number }}
+            </span>
+        </div>
+
+        {% if main_loan %}
+        <div class="alert alert-info shadow-sm">
+            <strong>Remaining Balance:</strong>
+            {{ main_loan.balance|floatformat:2 }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.member_account.as_hidden }}
+            {{ form.loan.as_hidden }}
+
+            <!-- FORM ERRORS -->
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger shadow-sm">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            <!-- MAIN LOAN -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    Main Loan Repayment
+                </div>
+
+                <div class="card-body">
+                    {{ form.non_field_errors }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.amount.label_tag }}
+                            {{ form.amount }}
+                            {{ form.amount.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.receipt_ref_no.label_tag }}
+                            {{ form.receipt_ref_no }}
+                            {{ form.receipt_ref_no.errors }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.due_date.label_tag }}
+                            {{ form.due_date }}
+                            {{ form.due_date.errors }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            {{ form.paid_on.label_tag }}
+                            {{ form.paid_on }}
+                            {{ form.paid_on.errors }}
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- PEER LOANS -->
+            {% if peer_forms %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning fw-semibold">
+                    Peer-to-Peer Loan Repayments
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Lender</th>
+                                <th>Loan</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th class="text-end">Repay</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for loan, form in peer_forms %}
+                            <tr>
+                                <td class="fw-semibold">
+                                    {{ loan.lender.member.user.get_full_name }}
+                                </td>
+                                <td>{{ loan.amount|floatformat:2 }}</td>
+                                <td>{{ loan.total_paid|floatformat:2 }}</td>
+                                <td>{{ loan.remaining_balance|floatformat:2 }}</td>
+
+                                <td class="text-end" style="width:180px;">
+                                    {{ form.amount }}
+                                    {{ form.amount.errors }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- SUBMIT -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                    Submit All Payments
+                </button>
+            </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

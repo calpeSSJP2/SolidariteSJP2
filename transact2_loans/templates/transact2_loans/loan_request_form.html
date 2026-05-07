@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between;">  <!-- to set btn on right -->
+  <h2> Loan Request from SSJP2 </h2>
+
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back to dashboard
+    </a>
+</div>
+
+<!-- Non-field form errors -->
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">
+    {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- Active regular loan warning -->
+{% if active_loan %}
+  <div class="alert alert-warning mt-4">
+    ⚠️ This member already has an active regular loan.
+    <br>
+    You can request a top-up instead:
+    <a href="{% url 'transact2_loans:loan_topup' loan_id=active_loan.pk %}" class="btn btn-outline-primary mt-2">
+      Request Top-Up
+    </a>
+  </div>
+{% endif %}
+
+<!-- Loan Request Form -->
+{% if not active_loan %}
+  <form method="post" novalidate class="mt-4">
+    {% csrf_token %}
+
+    <!-- Account Dropdown -->
+    <div class="mb-3">
+      <label for="{{ form.account.id_for_label }}" class="form-label">{{ form.account.label }}</label>
+      <select name="{{ form.account.name }}" id="{{ form.account.id_for_label }}" class="form-control">
+        {% for account in form.account.field.queryset %}
+          <option value="{{ account.pk }}" {% if account.pk == form.account.value %}selected{% endif %}>
+            {{ account.member.user.first_name }} {{ account.member.user.last_name }} - {{ account.account_number }}
+          </option>
+        {% endfor %}
+      </select>
+      {% for error in form.account.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Loan Type -->
+    <div class="mb-3">
+      {{ form.loan_type.label_tag }}
+      {{ form.loan_type }}
+      {% for error in form.loan_type.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Amount -->
+    <div class="mb-3">
+      {{ form.amount.label_tag }}
+      {{ form.amount }}
+      {% for error in form.amount.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Term Months -->
+    <div class="mb-3">
+      {{ form.term_months.label_tag }}
+      {{ form.term_months }}
+      {% for error in form.term_months.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="btn btn-primary">Submit Loan Request</button>
+    <a href="{% url 'transact2_loans:loan_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+{% endif %}
+{% endblock %}

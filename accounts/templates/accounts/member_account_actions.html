@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Activate, Suspend Or Close Member Accounts</h2>
+ <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">  ← Back to dashboard </a>
+  </div>
+
+  <table class="table table-bordered table-striped align-middle">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Member</th>
+        <th>Account No.</th>
+        <th>Shares</th>
+        <th>Capital</th>
+        <th>Balance</th>
+        <th>Months</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for acc in accounts %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ acc.member }}</td>
+        <td>{{ acc.account_number }}</td>
+        <td>{{ acc.shares }}</td>
+        <td>{{ acc.principal }}</td>
+        <td>{{ acc.balance }}</td>
+        <td>{{ acc.duration }}</td>
+        <td>{{ acc.get_status_type_display }}</td>
+        <td>
+          <div class="d-flex flex-column gap-1">
+            {% if acc.status_type == 'active' %}
+              <!-- Suspend -->
+              <form action="{% url 'accounts:suspend_account' acc.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-warning w-100">Suspend</button>
+              </form>
+
+              <!-- Dormant -->
+              <form action="{% url 'accounts:dormant_account' acc.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-secondary w-100">Dormant</button>
+              </form>
+
+              <!-- Close -->
+              <form action="{% url 'accounts:close_account' acc.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger w-100">Close</button>
+              </form>
+            {% elif acc.status_type != 'closed' %}
+              <!-- Reactivate -->
+              <form action="{% url 'accounts:activate_account' acc.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success w-100">✅ Activate</button>
+              </form>
+            {% else %}
+              <span class="badge bg-danger">Closed</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9" class="text-center text-muted">No accounts found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ✅ Pagination -->
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    {% if is_paginated %}
+    <div>
+      Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} accounts
+    </div>
+    <nav>
+      <ul class="pagination mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

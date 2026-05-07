@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container py-5">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="row g-0">
+
+      <!-- LEFT SIDE (SVG DESIGN) -->
+      <div class="col-md-5 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="340" height="340" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- Outer Circle -->
+          <circle cx="180" cy="180" r="130"
+              stroke="#0d6efd"
+              stroke-width="3"
+              fill="none"/>
+
+          <!-- Inner Circle -->
+          <circle cx="180" cy="180" r="60"
+              fill="rgba(13,110,253,0.1)"/>
+
+          <!-- User Icon -->
+          <g fill="#0d6efd">
+            <circle cx="180" cy="150" r="12"/>
+            <rect x="165" y="165" width="30" height="35" rx="10"/>
+          </g>
+
+          <!-- Decorative Icons -->
+          <text x="160" y="60" font-size="28">👤</text>
+          <text x="40" y="180" font-size="28">✏️</text>
+          <text x="300" y="180" font-size="28">⚙️</text>
+          <text x="165" y="330" font-size="28">🔐</text>
+
+        </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE (FORM) -->
+      <div class="col-md-7 p-4">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="fw-bold text-primary mb-0">Edit User</h4>
+
+          <a href="{% url 'accounts:register' %}"
+             class="btn btn-outline-secondary btn-sm">
+            ← Back
+          </a>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+
+            <form method="POST">
+              {% csrf_token %}
+
+              <!-- USER INFO -->
+              <h6 class="fw-bold text-muted mb-3">User Info</h6>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  {{ form.username.label_tag }}
+                  {{ form.username }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  {{ form.email.label_tag }}
+                  {{ form.email }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  {{ form.first_name.label_tag }}
+                  {{ form.first_name }}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  {{ form.last_name.label_tag }}
+                  {{ form.last_name }}
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  {{ form.telephone.label_tag }}
+                  {{ form.telephone }}
+                </div>
+              </div>
+
+              <hr>
+
+              <div class="border rounded p-3">
+  <div class="row">
+    {% for checkbox in form.roles %}
+      <div class="col-md-6">
+        <div class="form-check">
+          {{ checkbox.tag }}
+          <label class="form-check-label">
+            {{ checkbox.choice_label }}
+          </label>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+              <hr>
+
+              <!-- MEMBER PROFILE -->
+              <h6 class="fw-bold text-muted mb-3">Member Profile</h6>
+
+              <div class="mb-3">
+                <label class="form-label">National ID</label>
+                <input type="text" name="national_id"
+                       class="form-control"
+                       value="{% if object.membersprofile %}{{ object.membersprofile.national_id }}{% endif %}">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Address</label>
+                <input type="text" name="address"
+                       class="form-control"
+                       value="{% if object.membersprofile %}{{ object.membersprofile.address }}{% endif %}">
+              </div>
+
+              <!-- SUBMIT -->
+              <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  Update User
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

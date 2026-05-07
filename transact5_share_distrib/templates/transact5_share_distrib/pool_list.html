@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-5">
+
+  <div class="d-flex justify-content-between mb-4">
+    <h3 class="fw-bold">Interest Pools</h3>
+ <a href="{{ request.user.dashboard_url }}"  class="btn btn-outline-secondary btn-sm">  ← Back
+          </a>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Year</th>
+        <th>Total Interest</th>
+        <th>Distributed</th>
+        <th>Status</th>
+        <th>Attached List</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      {% for pool in pools %}
+      <tr>
+        <td>{{ pool.year }}</td>
+        <td>{{ pool.total_interest }}</td>
+        <td>{{pool.distributed_amount }}</td>
+        <td>
+  {% if pool.status == "distributed" %}
+    <span class="badge bg-success">Done</span>
+
+  {% elif pool.status == "approved" %}
+    <span class="badge bg-primary">Approved</span>
+
+  {% else %}
+    <span class="badge bg-warning text-dark">Pending</span>
+  {% endif %}
+</td>
+        <td>
+          <a href="{% url 'transact5_share_distrib:pool-detail' pool.pk %}" class="btn btn-sm btn-outline-primary">
+            View
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center text-muted">
+          No pools yet.
+        </td>
+      </tr>
+      {% endfor %}
+
+    </tbody>
+  </table>
+
+</div>
+
+
+  </div>
+
+</div>
+{% include "transact5_share_distrib/pagination.html" %}
+{% endblock %}

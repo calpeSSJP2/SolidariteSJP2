@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between;">  <!-- to set btn on right -->
+<h2>Top-Up Loan Request</h2>
+
+
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back to dashboard
+    </a>
+</div>
+{% if form.errors %}
+  <div class="alert alert-danger">
+    <strong>Form errors:</strong>
+    {{ form.errors }}
+  </div>
+{% endif %}
+
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">
+    {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<form method="post" class="mt-4">
+  {% csrf_token %}
+
+  <!-- Account (disabled) -->
+  <div class="mb-3">
+    {{ form.account.label_tag }}
+    {{ form.account }}
+    {% for error in form.account.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- Loan Type (disabled) -->
+  <div class="mb-3">
+    {{ form.loan_type.label_tag }}
+    {{ form.loan_type }}
+    {% for error in form.loan_type.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- Top-Up Amount -->
+  <div class="mb-3">
+    {{ form.amount.label_tag }}
+    {{ form.amount }}
+    {% for error in form.amount.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- Term Months -->
+  <div class="mb-3">
+    {{ form.term_months.label_tag }}
+    {{ form.term_months }}
+    {% for error in form.term_months.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit Top-Up Request</button>
+  <a href="{% url 'transact2_loans:loan_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

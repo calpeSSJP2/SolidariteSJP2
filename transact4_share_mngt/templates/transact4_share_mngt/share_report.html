@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+  <!-- Back Button -->
+  <div class="mb-3">
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+      ← Back to dashboard
+    </a>
+  </div>
+
+  <h2 class="mb-4">Share Transaction Report</h2>
+
+  <!-- FILTER FORM -->
+  <form method="get" class="row g-3 mb-4">
+
+    <div class="col-md-3">
+      <label class="form-label">Account</label>
+      <select name="account" class="form-select">
+        <option value="">All Accounts</option>
+        {% for acc in accounts %}
+          <option value="{{ acc.id }}"
+            {% if request.GET.account == acc.id|stringformat:"s" %}
+              selected
+            {% endif %}
+          >
+            {{ acc.account_number }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Start Date</label>
+      <input type="date"
+             name="start_date"
+             value="{{ request.GET.start_date }}"
+             class="form-control">
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">End Date</label>
+      <input type="date"
+             name="end_date"
+             value="{{ request.GET.end_date }}"
+             class="form-control">
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Type</label>
+      <select name="type" class="form-select">
+        <option value="">All</option>
+        <option value="increase"
+          {% if request.GET.type == "increase" %}selected{% endif %}>
+          Increase
+        </option>
+        <option value="decrease"
+          {% if request.GET.type == "decrease" %}selected{% endif %}>
+          Decrease
+        </option>
+      </select>
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">
+        Filter
+      </button>
+    </div>
+
+  </form>
+
+  <!-- TRANSACTION TABLE -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>Date</th>
+          <th>Account</th>
+          <th>Member Name</th>
+          <th>Type</th>
+          <th>Shares Changed</th>
+          <th>Current Shares</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+          <tr>
+            <td>{{ tx.date|date:"Y-m-d H:i" }}</td>
+            <td>{{ tx.account.account_number }}</td>
+            <td>{{ tx.account.full_name }}</td>
+            <td>
+              {% if tx.type == "Increase" %}
+                <span class="badge bg-success">Increase</span>
+              {% else %}
+                <span class="badge bg-danger">Decrease</span>
+              {% endif %}
+            </td>
+            <td>{{ tx.shares }}</td>
+            <td><strong>{{ tx.current_shares }}</strong></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center">
+              No transactions found.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}

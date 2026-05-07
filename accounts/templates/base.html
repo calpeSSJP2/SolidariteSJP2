@@ -1,0 +1,187 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <!-- ✅ FAVICON -->
+    <link rel="icon" type="image/x-icon" href="{% static 'mysite/images/logo.jpg' %}">
+
+    <title>{% block title %}Welcome to SSJP2{% endblock %}</title>
+
+    <!-- ================= BOOTSTRAP ================= -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- ================= FLATPICKR ================= -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+        }
+
+        /* Optional Flatpickr styling to match Bootstrap */
+        .flatpickr-calendar {
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-dark bg-primary py-2">
+    <div class="container-fluid d-flex justify-content-between">
+
+        <!-- LEFT SIDE -->
+        <div class="d-flex align-items-center">
+
+            <!-- SIDEBAR BUTTON -->
+            <button class="btn btn-light me-2"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#sidebarMenu">
+                ☰
+            </button>
+
+            <img src="{% static 'mysite/images/JeanPaul2.jpg' %}"
+                 class="rounded-circle me-2"
+                 style="width: 40px; height: 40px; object-fit: cover;">
+
+            <span class="navbar-brand mb-0">
+                Solidarité Saint Jean Paul 2
+            </span>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="d-flex align-items-center">
+
+            {% if request.user.is_authenticated %}
+
+                <span class="text-white me-3">
+                    {{ request.user.username }}
+                </span>
+
+                <!-- ACTIVE ROLE -->
+                {% if request.session.active_role %}
+                <span class="badge bg-warning text-dark me-2">
+                    {{ request.session.active_role }}
+                </span>
+                {% endif %}
+
+                <!-- SWITCH ROLE -->
+                {% if user_roles|length > 1 %}
+                <div class="dropdown me-2">
+                    <button class="btn btn-light btn-sm dropdown-toggle"
+                            data-bs-toggle="dropdown">
+                        Switch Mode
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        {% for role in user_roles %}
+                        <li>
+                            <form method="post" action="{% url 'accounts:switch_role' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="role" value="{{ role }}">
+
+                                <button type="submit"
+                                        class="dropdown-item {% if request.session.active_role == role %}active{% endif %}">
+                                    {{ role|title }}
+                                </button>
+                            </form>
+                        </li>
+                        {% endfor %}
+
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- LOGOUT -->
+                <a href="{% url 'accounts:logout' %}"
+                   class="btn btn-outline-light btn-sm">
+                    Logout
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'accounts:login' %}"
+                   class="btn btn-light btn-sm">
+                    Login
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+</nav>
+
+<!-- ================= SIDEBAR ================= -->
+<div class="offcanvas offcanvas-start"
+     tabindex="-1"
+     id="sidebarMenu">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Navigation</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+
+        {% block sidebar %}
+           <a class="d-block py-2" href="{% url 'accounts:my-profile' %}"> 👤 Profile
+</a>
+
+        {% endblock %}
+
+    </div>
+</div>
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="content-area">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer class="bg-light text-center text-muted py-3 border-top mt-auto">
+
+    <div class="bg-success text-white py-2">
+        &copy; Kigali-Rwanda &nbsp; &middot;
+
+        <span class="me-3">Email: info@ssjp2.org</span>
+        &middot;
+
+        <span>Telephone: +250 788 466 689</span>
+    </div>
+
+</footer>
+
+<!-- ================= JS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- Page-specific scripts -->
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

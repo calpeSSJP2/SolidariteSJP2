@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <!-- CARD START -->
+      <div class="card shadow-sm border-0">
+
+        <!-- Card Header -->
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Member Registration</h5>
+
+          <a href="{{ request.user.dashboard_url }}"
+             class="btn btn-light btn-sm">
+            ← Dashboard
+          </a>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+
+          <!-- Messages -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <!-- Errors -->
+          {% if form.errors %}
+            <div class="alert alert-danger">
+              <strong>Please fix the errors below</strong>
+              <ul class="mb-0 mt-2">
+                {% for field, errors in form.errors.items %}
+                  {% for error in errors %}
+                    <li>
+                      {% if field != "__all__" %}
+                        <strong>{{ field|capfirst }}:</strong>
+                      {% endif %}
+                      {{ error }}
+                    </li>
+                  {% endfor %}
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <!-- FORM -->
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+            <div class="row g-3">
+
+              <!-- LEFT -->
+              <div class="col-md-6">
+
+                <label class="form-label">Username *</label>
+                {{ form.username|add_class:"form-control" }}
+
+                <label class="form-label mt-3">First Name *</label>
+                {{ form.first_name|add_class:"form-control" }}
+
+                <label class="form-label mt-3">Last Name *</label>
+                {{ form.last_name|add_class:"form-control" }}
+
+                <label class="form-label mt-3">Phone *</label>
+                {{ form.telephone|add_class:"form-control" }}
+
+                <label class="form-label mt-3">Email</label>
+                {{ form.email|add_class:"form-control" }}
+
+                  <label class="form-label mt-3">Address</label>
+                {{ form.address|add_class:"form-control" }}
+
+              </div>
+
+              <!-- RIGHT -->
+              <div class="col-md-6">
+
+                <label class="form-label">Roles *</label>
+
+               <div class="border rounded p-3">
+  <div class="row">
+    {% for checkbox in form.roles %}
+      <div class="col-md-6">
+        <div class="form-check">
+          {{ checkbox.tag }}
+          <label class="form-check-label">
+            {{ checkbox.choice_label }}
+          </label>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+                <label class="form-label mt-3">National ID</label>
+                {{ form.national_id|add_class:"form-control" }}
+
+                                <label class="form-label mt-3">Password *</label>
+                <div class="input-group">
+                  {{ form.password1|add_class:"form-control" }}
+                  <button type="button" class="btn btn-outline-secondary"
+                          onclick="togglePassword('id_password1')">👁</button>
+                </div>
+
+                <label class="form-label mt-3">Confirm Password *</label>
+                <div class="input-group">
+                  {{ form.password2|add_class:"form-control" }}
+                  <button type="button" class="btn btn-outline-secondary"
+                          onclick="togglePassword('id_password2')">👁</button>
+                </div>
+
+
+                <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-primary px-4">
+                Register Member
+              </button>
+            </div>
+              </div>
+
+            </div>
+
+            <!-- Submit -->
+
+
+          </form>
+
+        </div>
+      </div>
+      <!-- CARD END -->
+           </div>
+  </div>
+</div>
+  {% include "accounts/user_list.html" %}
+<script>
+function togglePassword(fieldId) {
+    const input = document.getElementById(fieldId);
+    input.type = input.type === "password" ? "text" : "password";
+}
+</script>
+
+<!-- jQuery FIRST -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: "Select roles",
+        closeOnSelect: false   // 👈 IMPORTANT
+    });
+});
+</script>
+{% endblock %}

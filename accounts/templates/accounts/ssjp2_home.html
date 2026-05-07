@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm p-4">
+    <div class="row">
+
+ <!-- LEFT half: SVG illustration (blue theme friendly) -->
+<!-- LEFT half: SVG illustration (Bootstrap blue theme compatible) -->
+<div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+
+  <svg width="420" height="420" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Outer circle (soft white for blue background) .strock-width to control thin of line -->
+    <circle cx="180" cy="180" r="135"
+        stroke="#198754"
+        stroke-width="10"
+        fill="none"/>
+
+
+    <!-- Center circle (subtle glass effect) -->
+    <circle cx="180" cy="180" r="60"
+            fill="rgba(255,255,255,0.12)"/>
+
+    <!-- COMMUNITY , head circle, and add heigh of people.. -->
+<g fill="#198754">
+
+  <circle cx="170" cy="160" r="8"/>
+  <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+  <circle cx="150" cy="175" r="7"/>
+  <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+  <circle cx="190" cy="175" r="7"/>
+  <rect x="184" y="183" width="12" height="18" rx="5"/>
+
+</g>
+
+    <!-- MUSIC / CHOIR -->
+    <text x="160" y="150" font-size="40" fill="#ffffff">🎼</text>
+<!-- SSJP2 LABEL -->
+<g>
+  <!-- Blue background -->
+  <rect x="140" y="100" width="80" height="40" rx="6" fill="#0d6efd"/>
+
+  <!-- White bold text -->
+  <text x="180" y="120"
+        text-anchor="middle"
+        font-size="16"
+        font-weight="bold"
+        fill="#ffffff">
+    SSJP2
+  </text>
+</g>
+    <!-- DOVE -->
+<!-- DOVES facing each other near music -->
+<!-- NOW LEFT SIDE (this used to be right) -->
+<g transform="translate(140,150) scale(-1,1)">
+  <text font-size="36" text-anchor="middle">🕊️</text>
+</g>
+
+<!-- NOW RIGHT SIDE (this used to be left) -->
+<g transform="translate(220,150)">
+  <text font-size="36" text-anchor="middle">🕊️</text>
+</g>
+
+
+    <!-- CROSS -->
+    <text x="180" y="220" font-size="30" text-anchor="middle" fill="#ffffff">✝️</text>
+
+    <!-- EDUCATION -->
+    <text x="170" y="40" font-size="45">🎼</text>
+
+    <!-- FINANCE -->
+   <g fill="#ffffff">
+  <text x="300" y="175" font-size="30">💰</text>
+  <text x="290" y="200" font-size="16">FRW</text>
+</g>
+
+    <!-- HOUSING -->
+    <text x="175" y="345" font-size="34">🏠</text>
+
+    <!-- SOLIDARITY -->
+    <text x="40" y="185" font-size="40">🤝</text>
+
+  </svg>
+
+</div><!-- End left column -->
+
+      <!-- RIGHT half: Login form / Dashboard Links -->
+      <div class="col-md-6">
+
+        {% if user.is_authenticated %}
+            <p>Hello, {{ user.first_name }} as current {{ user.role }} in Solidarite SJP2.</p>
+            <ul>
+              {% with user.role|upper as role_upper %}
+                  {% if role_upper == 'MANAGER' %}
+                      <li><a href="{% url 'accounts:manager-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'CUSTOMER' %}
+                      <li><a href="{% url 'accounts:customer-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'OFFICER' %}
+                      <li><a href="{% url 'accounts:officer-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'AUDITOR' %}
+                      <li><a href="{% url 'accounts:auditor-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'VERIFIER' %}
+                      <li><a href="{% url 'accounts:verifier-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'IT_ADMIN' %}
+                      <li><a href="{% url 'accounts:it_admin-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% endif %}
+              {% endwith %}
+              <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+            </ul>
+        {% else %}
+            <div class="card shadow-sm border-0 p-4 text-center">
+
+    <h5 class="mb-3 text-primary fw-semibold">
+        Welcome to Solidarité SJP2
+    </h5>
+
+    <p class="text-muted mb-4">
+        Please sign in to access your dashboard or create a new account to join the SSJP2 Members.
+    </p>
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary px-4">
+            Login
+        </a>
+
+        <a href="{% url 'accounts:register' %}" class="btn btn-outline-success px-4">
+            Register
+        </a>
+
+    </div>
+
+</div>
+        {% endif %}
+      </div> <!-- End right column -->
+
+    </div>
+  </div>
+</div>
+{% endblock %}

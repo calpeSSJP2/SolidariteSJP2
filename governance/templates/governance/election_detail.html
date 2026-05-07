@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ election.name }}</h2>
+
+<p><strong>Date:</strong> {{ election.election_date }}</p>
+<p><strong>Description:</strong> {{ election.description }}</p>
+<p><strong>Created On:</strong> {{ election.created_on }}</p>
+
+<a href="{% url 'governance:election_edit' election.pk %}">Edit</a>
+
+{% endblock %}
