@@ -1,0 +1,17 @@
+[33mcommit 9eabf07bdffaee89e964563609028397c5d88a05[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: Calpephore Nkika <calponkika@gmail.com>
+Date:   Thu May 7 23:23:39 2026 +0200
+
+    Initial commit
+
+[33mcommit 14f6ba55f9c76e69c140ef7d45c950a354a1358d[m
+Author: Calpephore Nkika <calponkika@gmail.com>
+Date:   Thu May 7 23:20:58 2026 +0200
+
+    Add requirements.txt for deployment
+
+[33mcommit 6006c4db50c64e3622f15e02c46575fb033ce07c[m
+Author: Calpephore Nkika <calponkika@gmail.com>
+Date:   Thu May 7 23:00:03 2026 +0200
+
+    Initial commit

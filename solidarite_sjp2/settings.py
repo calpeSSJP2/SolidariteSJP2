@@ -12,9 +12,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==============================
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-local-dev-key")  # fallback for local testing
 DEBUG = os.environ.get("DEBUG", "False") == "True"
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # Use environment variable for allowed hosts, fallback for local testing
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+#ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# SECURITY: Hosts allowed to serve your app
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "solidaritesjp2.onrender.com").split(",")
+#ALLOWED_HOSTS = os.environ.get(  "ALLOWED_HOSTS",
+   ## "localhost,127.0.0.1,solidaritesjp2.onrender.com,www.solidaritesjp2.com").split(",")
 
 # ==============================
 # Installed Apps
@@ -92,7 +99,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'NAME': os.environ.get("DB_NAME", "ssjp2Database"),
             'USER': os.environ.get("DB_USER", "root"),
-            'PASSWORD': os.environ.get("DB_PASSWORD", ""),
+            'PASSWORD': os.environ.get("DB_PASSWORD", "Popos@2026"),
             'HOST': os.environ.get("DB_HOST", "localhost"),
             'PORT': os.environ.get("DB_PORT", "3306"),
         }
@@ -133,6 +140,12 @@ if not DEBUG:
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # ==============================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'root': {'handlers': ['console'], 'level': 'INFO'},
+}
 # Login / Logout
 # ==============================
 LOGIN_URL = '/accounts/login/'
