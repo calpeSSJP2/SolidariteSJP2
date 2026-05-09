@@ -4,7 +4,7 @@
 ##
 ##>> rm db.sqlite3   ##clean everythin in database, make migration . 1.register, 2.sec gives account ssjps, 3.then memeber account
 ##It manager Calpe, Calpe@2026
-## IT Technicien: KarpoT, calpeT@2026  SQL=Popos@2026 ((venv) PS C:\--\SolidariteSJP2> mysql -u root -p
+## IT Technicien: KarpoT, calpeT@2026  SQL=Popos@2026 ((venv) PS C:\--\SolidariteSJP2> mysql -u root -p,,I accessd Rnder by using github
 #It manager Kalpe, calpe@2026
 ##SECRETARY    Armanda |  arma@2026
 #Manager   gygy    psw:lydw@2025 okRun
