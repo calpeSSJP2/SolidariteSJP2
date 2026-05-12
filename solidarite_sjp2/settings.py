@@ -19,7 +19,6 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "your-local-dev-key")
 # ##  For development
 ##DEBUG = True
 ###SECURE_SSL_REDIRECT = False
-#for deployement
 DEBUG = True
 SECURE_SSL_REDIRECT = False
 # HTTPS security only in production
@@ -30,11 +29,18 @@ CSRF_COOKIE_SECURE = not DEBUG
 # ==============================
 # Allowed Hosts
 # ==============================
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,  solidaritesjp2-1.onrender.com"
-).split(",")
+import os
 
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
+
+if ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ALLOWED_HOSTS.split(",")
+else:
+    ALLOWED_HOSTS = [
+        "localhost",
+        "127.0.0.1",
+        "solidaritesjp2-1.onrender.com",
+    ]
 # ==============================
 # Installed Apps
 # ==============================
