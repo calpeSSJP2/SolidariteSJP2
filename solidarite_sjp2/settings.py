@@ -17,10 +17,12 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "your-local-dev-key")
 #   PowerShell -> $env:DEBUG="True"
 # Production (Render):
 #   DEBUG=False
-DEBUG = os.environ.get("DEBUG", "False") == "True"
-
+#DEBUG = os.environ.get("DEBUG", "False") == "True"
+#DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1", "yes", "on")
+DEBUG = True
+SECURE_SSL_REDIRECT = False
 # HTTPS security only in production
-SECURE_SSL_REDIRECT = not DEBUG
+#SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
@@ -234,8 +236,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #   web: gunicorn solidarite_sjp2.wsgi:application
 #
 # Environment variables:
-#   DEBUG=False
+#
+
 #   SECRET_KEY=your-secret-key
 #   DATABASE_URL=your-database-url
-#
+#cd C:\Users\Admin\PycharmProjects\SolidariteSJP2
 # ==========================================================
