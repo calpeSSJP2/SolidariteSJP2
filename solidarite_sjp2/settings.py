@@ -30,17 +30,17 @@ CSRF_COOKIE_SECURE = not DEBUG
 # Allowed Hosts
 # ==============================
 import os
+ALLOWED_HOSTS = ["*"]
+#ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
-
-if ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ALLOWED_HOSTS.split(",")
-else:
-    ALLOWED_HOSTS = [
-        "localhost",
-        "127.0.0.1",
-        "solidaritesjp2-1.onrender.com",
-    ]
+#if ALLOWED_HOSTS:
+#    ALLOWED_HOSTS = ALLOWED_HOSTS.split(",")
+#else:
+  #  ALLOWED_HOSTS = [
+  #      "localhost",
+  #      "127.0.0.1",
+  #      "solidaritesjp2-1.onrender.com",
+  #  ]
 # ==============================
 # Installed Apps
 # ==============================
