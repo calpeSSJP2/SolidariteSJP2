@@ -125,7 +125,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'NAME': os.environ.get("DB_NAME", "ssjp2Database"),
             'USER': os.environ.get("DB_USER", "root"),
-            'PASSWORD': os.environ.get("DB_PASSWORD", "Popos@2026"),
+            'PASSWORD': os.environ.get("DB_PASSWORD", ""),
             'HOST': os.environ.get("DB_HOST", "localhost"),
             'PORT': os.environ.get("DB_PORT", "3306"),
         }
@@ -239,6 +239,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #
 
 #   SECRET_KEY=your-secret-key
-#   DATABASE_URL=your-database-url
-#cd C:\Users\Admin\PycharmProjects\SolidariteSJP2
+# #  DATABASE_URL=your-database-url
+# #cd C:\Users\Admin\PycharmProjects\SolidariteSJP2
 # ==========================================================
