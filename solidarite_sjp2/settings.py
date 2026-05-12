@@ -16,9 +16,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "your-local-dev-key")
 # Local Windows development:
 #   PowerShell -> $env:DEBUG="True"
 # Production (Render):
-#   DEBUG=False
-#DEBUG = os.environ.get("DEBUG", "False") == "True"
-#DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in ("true", "1", "yes", "on")
+# ##  For development
+##DEBUG = True
+###SECURE_SSL_REDIRECT = False
+#for deployement
 DEBUG = True
 SECURE_SSL_REDIRECT = False
 # HTTPS security only in production
@@ -31,7 +32,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 # ==============================
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,solidaritesjp2.onrender.com"
+    "localhost,127.0.0.1,  solidaritesjp2-1.onrender.com"
 ).split(",")
 
 # ==============================
