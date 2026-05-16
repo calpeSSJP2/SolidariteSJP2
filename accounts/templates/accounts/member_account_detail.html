@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
+ <div class="d-flex justify-content-between align-items-center mt-3">
   <h2>Account Details</h2>
+
+  <a href="{% url 'accounts:member_account-list' %}" class="btn btn-secondary">Back to List</a>
+  </div>
 
   <table class="table">
     <tr>
@@ -26,9 +29,7 @@
       <th>Last Activity:</th><td>{{ object.last_activity_on|default:"N/A" }}</td>
     </tr>
   </table>
-  <div>
-  <a href="{% url 'accounts:member_account-list' %}" class="btn btn-secondary">Back to List</a>
-  </div>
+
 
    <nav aria-label="Page navigation">
     <ul class="pagination mb-0">
@@ -59,5 +60,5 @@
       {% endif %}
     </ul>
   </nav>
-</div>
+
 {% endblock %}
