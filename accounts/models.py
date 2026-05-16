@@ -120,12 +120,9 @@ class MemberAccount(models.Model):
     principal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
 
-    opened_on = models.DateTimeField(default=timezone.now)
+    opened_on = models.DateField(null=True, blank=True)
 
-    status_type = models.CharField(
-        max_length=20,
-        choices=StatusType.choices,
-        default=StatusType.ACTIVE )
+    status_type = models.CharField( max_length=20,   choices=StatusType.choices,        default=StatusType.ACTIVE )
 
     closed_on = models.DateTimeField(null=True, blank=True)
     suspended_on = models.DateTimeField(null=True, blank=True)
