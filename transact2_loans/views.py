@@ -970,17 +970,26 @@ class LoanPaymentView(FormView):
             status__in=[Loan.LoanStatus.APPROVED, Loan.LoanStatus.ACTIVE]
         ).order_by('-issued_on').first()
 
-    def get_peer_loans(self, member_account):
-        return (
-            PeerToPeerLoan.objects
-            .select_for_update()   # 🔐 Prevent race conditions
-            .filter(
-                borrower=member_account,
-                is_fully_paid=False
-            )
-            .select_related("lender")
-        )
+    #def get_peer_loans(self, member_account):
+     #   return (
+     #       PeerToPeerLoan.objects
+     #       .select_for_update()   # 🔐 Prevent race conditions
+      #      .filter(
+      #          borrower=member_account,
+       #         is_fully_paid=False
+      #      )
+       #     .select_related("lender")
+       # )
 
+    def get_peer_loans(self, member_account, for_update=False):
+        qs = ( PeerToPeerLoan.objects.filter(  borrower=member_account,
+                is_fully_paid=False  )
+            .select_related("lender")        )
+        # Lock rows ONLY inside transaction.atomic()
+        if for_update:
+            qs = qs.select_for_update()
+
+        return qs
     # -------------------------
     # Context (GET)
     # -------------------------
@@ -989,10 +998,9 @@ class LoanPaymentView(FormView):
 
         member_account = self.get_member_account()
         main_loan = self.get_main_loan(member_account)
+        # NO LOCKING DURING GET
         peer_loans = self.get_peer_loans(member_account)
-
-        peer_forms = [ ( loan,
-                PeerLoanRepaymentForm(
+        peer_forms = [ ( loan,  PeerLoanRepaymentForm(
                     peer_loan=loan,
                     user=self.request.user,
                     prefix=f"peer_{loan.id}"  ) )
@@ -1021,11 +1029,12 @@ class LoanPaymentView(FormView):
         if not main_loan:
             messages.error(request, "No approved or active main loan found for this member.")
             return redirect(request.path)
-
+        # Main loan payment form
         loan_form = self.get_form()
         loan_form.instance.loan = main_loan
         loan_form.instance.received_by = request.user
-
+        # # Fetch peer loans WITHOUT LOCK first
+        # (used for form rendering/validation only)
         peer_loans = self.get_peer_loans(member_account)
 
         peer_forms = [
@@ -1043,7 +1052,10 @@ class LoanPaymentView(FormView):
 
         peer_valid = True
         for form in peer_forms:
-            if form.data.get(form.add_prefix('amount')):
+            amount = form.data.get(form.add_prefix('amount'))
+
+            # Validate only filled peer forms
+            if amount:
                 if not form.is_valid():
                     peer_valid = False
 
@@ -1075,7 +1087,13 @@ class LoanPaymentView(FormView):
         # Atomic Transaction
         # -------------------------
         with transaction.atomic():
+            # LOCK peer loans INSIDE transaction
+            locked_peer_loans = self.get_peer_loans( member_account,
+                for_update=True )
 
+            # Optional:
+            # Force queryset evaluation immediately
+            locked_peer_loans = list(locked_peer_loans)
             # 1️⃣ Activate loan if needed
             if main_loan.status == Loan.LoanStatus.APPROVED:
                 main_loan.status = Loan.LoanStatus.ACTIVE
