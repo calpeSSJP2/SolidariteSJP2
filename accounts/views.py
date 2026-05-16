@@ -312,7 +312,7 @@ class UserListView(LoginRequiredMixin,ListView):
     model = User
     template_name = "accounts/user_list.html"
     context_object_name = "users"
-    paginate_by = 2  # optional but recommended
+    paginate_by = 10 # optional but recommended
 
     def get_queryset(self):
         return (
@@ -376,7 +376,7 @@ class MemberAccountDetailView(LoginRequiredMixin,DetailView):
     template_name = 'accounts/member_account_detail.html'
 
 class MemberAccountListView(LoginRequiredMixin,ActiveRoleRequiredMixin, ListView):
-    allowed_roles = ['manager', 'officer', 'itadmin']
+    allowed_roles = ['manager', 'officer', 'itadmin','ordinary_member']
     model = MemberAccount
     template_name = 'accounts/member_account_list.html'
     context_object_name = 'accounts'
