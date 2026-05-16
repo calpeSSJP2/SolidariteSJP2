@@ -1,10 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
-import re
-import re
+from django import forms
+from .models import MemberAccount, MembersProfile
+from decimal import Decimal
 
 from django import forms
 from django.db import transaction
@@ -22,8 +20,6 @@ User = get_user_model()
 from django import forms
 from accounts.models import User, Role
 from django.core.exceptions import ValidationError
-
-
 
 class RegistrationForm(forms.ModelForm):
     first_name = forms.CharField(required=True)
@@ -218,8 +214,23 @@ class MembersProfileUpdateForm(forms.ModelForm):
 
         return profile
 
+#####
+from django import forms
+from .models import MemberAccount, MembersProfile
 
-# ---------------------------------------------------
+class AddOldMemberForm(forms.ModelForm):
+    months_in_coop = forms.IntegerField( min_value=0,  initial=0,   help_text="Approximate number of months this member has been in the cooperative"
+    )
+
+    class Meta:
+        model = MemberAccount
+        fields = ['member', 'account_number', 'shares', 'principal', 'balance', 'months_in_coop']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Optional: only show members without an account
+        self.fields['member'].queryset = MembersProfile.objects.filter(account__isnull=True)
+        ##Discuss mth in coperative  igihe amazemo +iminsi itambutse
 # 🔵 SJP2 ACCOUNT FORM
 # ---------------------------------------------------
 class SJP2AccountForm(forms.ModelForm):
