@@ -135,10 +135,13 @@ class Loan(ActiveAccountMixin, models.Model):
     interest_amount = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
     status = models.CharField(max_length=20, choices=LoanStatus.choices, default=LoanStatus.PENDING)
     issued_on = models.DateField(default=timezone.now)
-    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    performed_by = models.ForeignKey(  settings.AUTH_USER_MODEL,  on_delete=models.SET_NULL,    null=True,
+        blank=True,  related_name="processed_loans"  )
+
+
     top_up_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="topups")
     rejected_reason = models.TextField(blank=True, null=True, help_text="Reason for rejecting the loan")
-    rejected_on = models.DateTimeField(blank=True, null=True)
+    performed_on = models.DateTimeField(blank=True, null=True)
     objects = LoanManager()
     #requested_on = models.DateTimeField(auto_now_add=True) I uses Issued on
     approved_on = models.DateTimeField(null=True, blank=True)

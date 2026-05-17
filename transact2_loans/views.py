@@ -431,8 +431,9 @@ class ApproveLoanView1(View):
         with transaction.atomic():
             # 1️⃣ Approve loan
             loan.status = Loan.LoanStatus.ACTIVE
-            loan.approved_by = request.user
-            loan.save(update_fields=['status', 'approved_by'])
+            loan.performed_by = request.user
+            loan.performed_on = timezone.now()
+            loan.save(update_fields=['status', 'performed_by'])
 
             # 2️⃣ Disburse principal if not already done
             already_posted = AccountStatement.objects.filter(
@@ -504,13 +505,13 @@ class RejectLoanView(LoginRequiredMixin, View):
         with transaction.atomic():
             loan.status = Loan.LoanStatus.REJECTED
             loan.rejected_reason = reason
-            loan.rejected_on = timezone.now()
-            loan.rejected_by = request.user  # make sure this field exists
+            loan.performed_on = timezone.now()
+            loan.performed_by = request.user  # make sure this field exists
             loan.save(update_fields=[
                 "status",
                 "rejected_reason",
-                "rejected_on",
-                "rejected_by",
+                "performed_on",
+                "performed_by",
             ])
 
         messages.success(request, "Loan rejected successfully.")
@@ -547,8 +548,8 @@ class ApproveLoanView(View):
 
             # 1️⃣ Approve loan
             loan.status = Loan.LoanStatus.ACTIVE
-            loan.approved_by = request.user
-            loan.save(update_fields=['status', 'approved_by'])
+            loan.performed_by = request.user
+            loan.save(update_fields=['status', 'performed_by'])
 
             # 2️⃣ Disburse principal if not already done
             already_posted = AccountStatement.objects.filter(
