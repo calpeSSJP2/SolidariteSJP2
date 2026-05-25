@@ -68,6 +68,7 @@ from .forms import (
     RegistrationForm,
     SJP2AccountForm,
     SJP2_ProfileForm,
+MemberAccountCreateForm,
     UserUpdateForm,
     MembersProfileUpdateForm,
     PasswordResetDirectForm
@@ -261,38 +262,6 @@ class RegisterView(FormView):
         return super().form_valid(form)
 
 
-class RegisterView11(FormView):
-    template_name = "accounts/registration.html"
-    form_class = RegistrationForm
-    success_url = reverse_lazy("accounts:register")
-
-    def get_queryset(self):
-        return (
-            User.objects
-            .select_related("membersprofile__account")
-            .prefetch_related("roles")
-            .order_by("-id")
-        )
-
-    def form_valid(self, form):
-        with transaction.atomic():
-            form.save()
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        qs = self.get_queryset()
-
-        paginator = Paginator(qs, 10)
-        page_number = self.request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-
-        context["users"] = page_obj
-        context["page_obj"] = page_obj
-        context["is_paginated"] = page_obj.has_other_pages()
-
-        return context
 
 class UserUpdateView(LoginRequiredMixin,UpdateView):
     model = User
@@ -358,17 +327,20 @@ class CustomPasswordResetCompleteView(PasswordResetCompleteView):
 
 class MemberAccountCreateView(LoginRequiredMixin,CreateView):
     model = MemberAccount
-    fields = ['member', 'shares', 'opened_on']
+    #fields = ['member', 'shares', 'opened_on']
+    form_class = MemberAccountCreateForm
     template_name = 'accounts/member_account_create.html'
     success_url = reverse_lazy('accounts:member_account-list')
 
     def form_valid(self, form):
         member_profile = form.cleaned_data['member']
         shares = form.cleaned_data['shares']
+        # ✅ GET OPENED DATE
+        opened_on = form.cleaned_data['opened_on']
 
         try:
             account, transaction_record = create_member_account_with_capital(
-                member_profile=member_profile, shares=shares  )
+                member_profile=member_profile, shares=shares,opened_on=opened_on)   # ✅ PASS IT
             messages.success(
                 self.request,
                 f"Member account {account.account_number} created successfully with initial deposit!"   )

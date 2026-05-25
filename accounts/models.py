@@ -355,6 +355,9 @@ class MemberAccount(models.Model):
             self.account_number = self.generate_next_account_number()
             self.initial_deposit = SHARE_VALUE
             self.principal = Decimal('0.00')
+            # Auto-set only if missing
+        if not self.opened_on:
+            self.opened_on = timezone.now().date()
 
         super().save(*args, **kwargs)
 
@@ -520,6 +523,7 @@ class LoginAttempt(models.Model):
 
     def __str__(self):
         return f"{self.username_entered} - {self.status}"
+
 class TrustedDevice(models.Model):
 
     user = models.ForeignKey(

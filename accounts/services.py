@@ -9,7 +9,7 @@ from ledger.services import LedgerService
 
 
 @transaction.atomic
-def create_member_account_with_capital(member_profile: MembersProfile, shares: int):
+def create_member_account_with_capital(member_profile: MembersProfile, shares: int,opened_on=None):
     """
     Create a MemberAccount safely, record initial deposit,
     ledger entries for the member and system account.
@@ -20,7 +20,9 @@ def create_member_account_with_capital(member_profile: MembersProfile, shares: i
 
     if MemberAccount.objects.filter(member=member_profile).exists():
         raise ValueError(f"Member {member_profile} already has an account.")
-
+        # ✅ fallback if no date provided
+    if not opened_on:
+            opened_on = timezone.now().date()
     # 1️⃣ Total contribution
     amount = SHARE_VALUE  # total contribution = share value * number of shares
 
@@ -30,7 +32,7 @@ def create_member_account_with_capital(member_profile: MembersProfile, shares: i
         shares=shares,
         initial_deposit=amount,
         #principal=amount,Yhis money canot touch principal
-        opened_on=timezone.now())
+        opened_on=opened_on)
 
     # 3️⃣ Record system transaction
     main_sjp2_account = SJP2_Account.get_main_account()

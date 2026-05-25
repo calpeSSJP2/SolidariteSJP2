@@ -303,4 +303,22 @@ class PasswordResetDirectForm(forms.Form):
             raise ValidationError("Passwords do not match.")
 
         return cleaned_data
+class MemberAccountCreateForm(forms.ModelForm):
 
+    class Meta:
+        model = MemberAccount
+
+        fields = ['member', 'shares', 'opened_on']
+
+        widgets = {
+            'opened_on': forms.DateInput(
+                attrs={'type': 'date','placeholder': 'YYYY-MM-DD'}
+            )
+        }
+
+        help_texts = {
+            'opened_on': (
+                "Optional. If left empty, today's date "
+                "will be used automatically."
+            )
+        }
