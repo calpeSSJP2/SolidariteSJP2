@@ -172,6 +172,30 @@ class MemberAccount(models.Model):
             months -= 1
         return max(months, 0)
 
+    def get_total_active_months(self):
+        """
+        Returns total months where the account
+        was ACTIVE only.
+        Suspended/dormant periods are excluded.
+        """
+
+        total_days = 0
+
+        active_periods = self.status_history.filter(
+            status_type=self.StatusType.ACTIVE
+        )
+
+        for period in active_periods:
+            start_date = period.started_on.date()
+
+            end_date = (period.ended_on.date()
+                if period.ended_on
+                else timezone.now().date()
+            )
+
+            total_days += (end_date - start_date).days
+
+        return total_days // 30
 
     # =========================================================
     # STATUS MANAGEMENT

@@ -1,7 +1,7 @@
 from django import forms
 from django import forms
 from .models import  WithdrawalTransaction, TransferTransaction,DepositTransaction, DepositDueTransaction
-
+from django.utils import timezone
 from decimal import Decimal
 from accounts.models import SJP2_Account,IncomeSource,MemberAccount
 from django import forms
@@ -300,7 +300,7 @@ class ExpenseForm(forms.Form):
 from accounts.models import MemberAccount
 
 
-class LegacyAccountUpdateForm(forms.Form):
+class LegacyAccountUpdateForm1(forms.Form):
 
     account_number = forms.CharField()
 
@@ -309,6 +309,8 @@ class LegacyAccountUpdateForm(forms.Form):
     principal = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.00"))
 
     balance = forms.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.00"))
+    legacy_active_months = forms.IntegerField(  min_value=0,  required=False,   initial=0,   help_text=(
+            "Number of ACTIVE cooperative months before "    "this system started."  ) )
 
     def clean_account_number(self):
         account_number = self.cleaned_data["account_number"]
@@ -336,5 +338,110 @@ class LegacyAccountUpdateForm(forms.Form):
 
             # attach object for service layer
             cleaned_data["account_obj"] = account
+
+        return cleaned_data
+class LegacyAccountUpdateForm(forms.Form):
+
+    account_number = forms.CharField(
+        widget=forms.TextInput(attrs={
+            "class": "form-control"
+        })
+    )
+
+    shares = forms.IntegerField(
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            "class": "form-control"
+        })
+    )
+
+    principal = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.01"
+        })
+    )
+
+    balance = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "step": "0.01"
+        })
+    )
+
+    legacy_active_months = forms.IntegerField(
+        min_value=0,
+        required=False,
+        initial=0,
+        help_text=(
+            "Number of ACTIVE cooperative months before "
+            "this system started."
+        ),
+        widget=forms.NumberInput(attrs={
+            "class": "form-control",
+            "placeholder": "Example: 18"
+        })
+    )
+
+    opened_on = forms.DateField(
+        required=False,
+        help_text=(
+            "Format: YYYY-MM-DD. "
+            "If empty, today's date will be used automatically."
+        ),
+        widget=forms.DateInput(attrs={
+            "type": "date",
+            "class": "form-control"
+        })
+    )
+
+    def clean_account_number(self):
+
+        account_number = self.cleaned_data["account_number"]
+
+        try:
+            account = (
+                MemberAccount.objects
+                .select_related(
+                    "member",
+                    "member__user"
+                )
+                .get(account_number=account_number)
+            )
+
+        except MemberAccount.DoesNotExist:
+            raise forms.ValidationError("Account not found")
+
+        return account_number
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        account_number = cleaned_data.get("account_number")
+
+        if account_number:
+
+            account = (
+                MemberAccount.objects
+                .select_related(
+                    "member",
+                    "member__user"
+                )
+                .get(account_number=account_number)
+            )
+
+            # attach object for service layer
+            cleaned_data["account_obj"] = account
+
+        # auto-default opened_on
+        if not cleaned_data.get("opened_on"):
+            cleaned_data["opened_on"] = timezone.now().date()
 
         return cleaned_data

@@ -214,24 +214,7 @@ class MembersProfileUpdateForm(forms.ModelForm):
 
         return profile
 
-#####
-from django import forms
-from .models import MemberAccount, MembersProfile
 
-class AddOldMemberForm(forms.ModelForm):
-    months_in_coop = forms.IntegerField( min_value=0,  initial=0,   help_text="Approximate number of months this member has been in the cooperative"
-    )
-
-    class Meta:
-        model = MemberAccount
-        fields = ['member', 'account_number', 'shares', 'principal', 'balance', 'months_in_coop']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Optional: only show members without an account
-        self.fields['member'].queryset = MembersProfile.objects.filter(account__isnull=True)
-        ##Discuss mth in coperative  igihe amazemo +iminsi itambutse
-# 🔵 SJP2 ACCOUNT FORM
 # ---------------------------------------------------
 class SJP2AccountForm(forms.ModelForm):
     class Meta:

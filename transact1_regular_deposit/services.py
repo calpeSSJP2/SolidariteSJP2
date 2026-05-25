@@ -377,6 +377,7 @@ class LegacyAccountUpdateService:
         new_balance = Decimal(data["balance"])
         new_principal = Decimal(data["principal"])
         new_shares = Decimal(data["shares"])
+        opened_on = data["opened_on"]
 
         # ----------------------------
         # CURRENT LEDGER BALANCE
@@ -405,6 +406,7 @@ class LegacyAccountUpdateService:
         account.shares = new_shares
         account.principal = new_principal
         account.balance = new_balance
+        account.opened_on = opened_on
         account.last_activity_on = timezone.now()
 
         account.save(
@@ -412,10 +414,39 @@ class LegacyAccountUpdateService:
                 "shares",
                 "principal",
                 "balance",
+                "opened_on",
                 "last_activity_on",
             ],
             _from_ledger=True
         )
+
+        # ----------------------------
+        # LEGACY ACTIVE MONTHS
+        # ----------------------------
+        legacy_months = int(
+            data.get("legacy_active_months", 0)
+        )
+
+        if (
+            legacy_months > 0
+            and not account.status_history.exists()
+        ):
+
+            from datetime import timedelta
+
+            # approximate backdate
+            started_date = (
+                timezone.now()
+                - timedelta(days=legacy_months * 30)
+            )
+
+            # create historical ACTIVE status
+            AccountStatusHistory.objects.create(
+                account=account,
+                status_type=MemberAccount.StatusType.ACTIVE,
+                started_on=started_date,
+                ended_on=None
+            )
 
         # ----------------------------
         # CREATE RECONCILIATION LEDGER ENTRY
@@ -426,9 +457,17 @@ class LegacyAccountUpdateService:
                 account=account,
                 transaction_type="legacy_import",
 
-                debit=abs(delta) if delta < 0 else Decimal("0.00"),
+                debit=(
+                    abs(delta)
+                    if delta < 0
+                    else Decimal("0.00")
+                ),
 
-                credit=delta if delta > 0 else Decimal("0.00"),
+                credit=(
+                    delta
+                    if delta > 0
+                    else Decimal("0.00")
+                ),
 
                 balance_after=new_balance,
 
