@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Loan Payment List</h2>
+
+<div class="mb-3"> <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back   </a>
+</div>
+
+<p>Total Payments: {{ total_payments }}</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Paid On</th>
+            <th>Member Name</th>
+            <th>Loan ID</th>
+            <th>Amount Paid</th>
+            <th>Amount Due</th>
+            <th>Delay (Months)</th>
+            <th>Penalty Applied</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for payment in payments %}
+        <tr>
+            <td>{{ payment.paid_on }}</td>
+            <td>
+                {{ payment.loan.account.member.user.get_full_name }}
+            </td>
+            <td>{{ payment.loan.id }}</td>
+            <td>{{ payment.amount }}</td>
+            <td>{{ payment.amount_due }}</td>
+            <td>{{ payment.delay_time }}</td>
+            <td>
+                {% if payment.penalty_applied %}
+                    Yes
+                {% else %}
+                    No
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No payments found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% include "transact2_loans/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,12 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="file" class="form-label">Select signed document</label>
+        <input class="form-control" type="file" name="file" accept=".pdf,.jpg,.png,.docx">
+    </div>
+    <div class="mb-3">
+        <label for="note" class="form-label">Optional Note</label>
+        <textarea class="form-control" name="note"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>

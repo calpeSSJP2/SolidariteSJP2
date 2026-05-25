@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+ <h4>Transaction Successful 🎉</h4>
+ <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">  ← Back to dashboard </a>
+  </div>
+
+    <p>Your {{ transaction_type|default:"transaction" }} has been completed successfully.</p>
+
+    <a href="{% url 'transact4_share_mngt:share-increase-search' %}" class="btn btn-success">Increase Shares</a>
+    <a href="{% url 'transact4_share_mngt:share-decrease-search' %}" class="btn btn-secondary">Decrease Shares</a>
+
+<div>
+
+</div>
+{% endblock %}

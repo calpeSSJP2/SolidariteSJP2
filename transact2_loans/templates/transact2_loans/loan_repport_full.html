@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+    <h2> Member's Loan Summary  </h2>
+
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back to dashboard
+    </a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Account</th>
+            <th>Member</th>
+            <th>Total Loan Balance</th>
+            <th>Total Paid</th>
+            <th>Total Unpaid</th>
+            <th>Time Remaining</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in members_summary %}
+        <tr>
+            <td>{{ item.account.account_number }}</td>
+            <td>{{ item.account.member.user.get_full_name }}</td>
+            <td>{{ item.total_loan_balance }}</td>
+            <td>{{ item.total_paid }}</td>
+            <td>{{ item.total_unpaid }}</td>
+            <td>
+                {% for loan_id, months in item.time_remaining.items %}
+                    Loan {{ loan_id }}: {{ months }} months<br>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% include "transact2_loans/pagination.html" %}
+{% endblock %}

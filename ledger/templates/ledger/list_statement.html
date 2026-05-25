@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block head_title %}Account Statements{% endblock %}
+
+{% block content %}
+<form method="get" class="flex items-center gap-6 mb-4 flex-wrap">
+  <input type="text" name="search"
+         placeholder="Account / Name"
+         value="{{ search }}"
+         class="border px-3 py-2 rounded w-64 h-10">
+
+  <label for="start_date" class="whitespace-nowrap mr-2"><strong>From:</strong></label>
+  <input type="date" name="start_date" id="start_date"
+         value="{{ start_date }}"
+         class="border px-3 py-2 rounded w-40 h-10">
+
+  <label for="end_date" class="whitespace-nowrap mr-2"><strong>To:</strong></label>
+  <input type="date" name="end_date" id="end_date"
+         value="{{ end_date }}"
+         class="border px-3 py-2 rounded w-40 h-10">
+
+  <button type="submit" class="btn btn-primary px-4 h-10">    Filter  </button>
+     <!-- Export Excel button -->
+    <a href="{% url 'ledger:export_transactions_excel' %}?search={{ request.GET.search }}&start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}"
+       class="btn btn-success px-4 h-10 ml-4">
+        Export Excel
+    </a>
+</form>
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+  <div class="flex gap-16">
+    <div>
+      <strong>Total Debit:</strong> {{ total_debit|floatformat:2|intcomma }} Rwf
+    </div>
+    <div>
+      <strong>Total Credit:</strong> {{ total_credit|floatformat:2|intcomma }} Rwf
+    </div>
+    <div>
+      <strong>Net Balance (Period):</strong> {{net_balance|floatformat:2|intcomma }} Rwf
+    </div>
+  </div>
+       <!-- to set btn on right --> <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">  ← Back to dashboard  </a>
+</div>
+
+{% if transactions %}
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr class="bg-gray-100">
+            <th class="border px-3 py-2">Date</th>
+            <th class="border px-3 py-2">Account</th>
+            <th class="border px-3 py-2">Type</th>
+            <th class="border px-3 py-2">Debit</th>
+            <th class="border px-3 py-2">Credit</th>
+            <th class="border px-3 py-2">Balance After</th>
+            <th class="border px-3 py-2">Reference</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for txn in transactions %}
+        <tr class="hover:bg-gray-50">
+            <td class="border px-3 py-2">{{ txn.date|date:"Y-m-d H:i" }}</td>
+            <td class="border px-3 py-2">{{ txn.account }}</td>
+            <td class="border px-3 py-2">{{ txn.transaction_type|capfirst }}</td>
+
+            {% if txn.debit > 0 %}
+                <td class="border px-3 py-2 text-red-600 font-semibold">
+                    ❌ {{ txn.debit }}
+                </td>
+                <td class="border px-3 py-2">-</td>
+            {% else %}
+                <td class="border px-3 py-2">-</td>
+                <td class="border px-3 py-2 text-green-600 font-semibold">
+                    ✔ {{ txn.credit }}
+                </td>
+            {% endif %}
+
+            <td class="border px-3 py-2 font-medium">{{ txn.balance_after }}</td>
+            <td class="border px-3 py-2">{{ txn.reference }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+</div>
+
+{% else %}
+<p class="text-center text-gray-500 mt-8">No transactions found</p>
+{% endif %}
+
+
+ {% include "ledger/pagination.html" %}
+{% endblock %}

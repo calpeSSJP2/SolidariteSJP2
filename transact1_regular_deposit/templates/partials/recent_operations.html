@@ -1,0 +1,92 @@
+{% load humanize %}
+<div style="margin-left:5cm; margin-right:5cm;">
+
+  <div class="card shadow-sm border-0 mt-4">
+
+    <div class="card-header bg-dark text-white">
+      Recent Operations (System Pool)
+    </div>
+
+    <div class="table-responsive">
+
+      <table class="table table-hover mb-0">
+
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Type</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% for op in recent_ops %}
+          <tr>
+            <td>{{ op.timestamp|date:"Y-m-d" }}</td>
+
+            <td>
+              {% if op.from_sjp2_account %}
+                {{ op.from_sjp2_account }}
+              {% elif op.from_member_account %}
+                {{ op.from_member_account }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+
+            <td>
+              {% if op.to_sjp2_account %}
+                {{ op.to_sjp2_account }}
+              {% elif op.to_member_account %}
+                {{ op.to_member_account }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+
+            <td>
+              {% if op.transaction_type == "Expense" %}
+                <span class="badge bg-danger">Expense</span>
+              {% elif op.transaction_type == "external_income" %}
+                <span class="badge bg-success">Income</span>
+              {% else %}
+                <span class="badge bg-secondary">
+                  {{ op.get_transaction_type_display }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="text-end fw-bold">
+              {% if op.transaction_type == "Expense" %}
+                <span class="text-danger">-{{ op.amount|intcomma }}</span>
+              {% elif op.transaction_type == "external_income" %}
+                <span class="text-success">+{{ op.amount|intcomma }}</span>
+              {% else %}
+                {{ op.amount|intcomma }}
+              {% endif %}
+              FRW
+            </td>
+          </tr>
+
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">
+              No recent transactions
+            </td>
+          </tr>
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    {% include "transact1_regular_deposit/pagination.html" %}
+
+  </div>
+
+</div>

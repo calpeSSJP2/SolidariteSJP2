@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- LEFT SIDE: SVG -->
+      <div class="col-md-5 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="320" height="320" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(255,255,255,0.12)"/>
+
+          <g fill="#198754">
+            <circle cx="170" cy="160" r="8"/>
+            <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+            <circle cx="150" cy="175" r="7"/>
+            <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+            <circle cx="190" cy="175" r="7"/>
+            <rect x="184" y="183" width="12" height="18" rx="5"/>
+          </g>
+
+          <text x="160" y="150" font-size="28">🎼</text>
+
+          <g transform="translate(140,150) scale(-1,1)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <g transform="translate(220,150)">
+            <text font-size="26" text-anchor="middle">🕊️</text>
+          </g>
+
+          <text x="180" y="220" font-size="24" text-anchor="middle">✝️</text>
+          <text x="170" y="40" font-size="34">🎼</text>
+          <text x="290" y="180" font-size="20" fill="#198754">RWF</text>
+          <text x="175" y="345" font-size="34">🏠</text>
+          <text x="40" y="185" font-size="34">🤝</text>
+
+        </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE: FORM -->
+      <div class="col-md-7 p-4 p-md-5 bg-white">
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+          <div>
+            <h4 class="mb-0 fw-bold text-primary">
+              Record External Income
+            </h4>
+            <small class="text-muted">
+              Add income to an account
+            </small>
+          </div>
+
+          <a href="{{ request.user.dashboard_url }}"  class="btn btn-outline-secondary btn-sm">
+              ← Back
+          </a>
+
+        </div>
+
+        <!-- GLOBAL ERRORS -->
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <!-- FORM -->
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+          <div class="row">
+
+            <!-- LEFT COLUMN -->
+            <div class="col-md-6">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Target Account <span class="text-danger">*</span>
+                </label>
+
+                {% if form.account.errors %}
+                  {{ form.account|add_class:"form-select is-invalid" }}
+                  <div class="invalid-feedback d-block">
+                    {{ form.account.errors.0 }}
+                  </div>
+                {% else %}
+                  {{ form.account|add_class:"form-select" }}
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Income Source <span class="text-danger">*</span>
+                </label>
+
+                {{ form.income_source|add_class:"form-select" }}
+
+                {% if form.income_source.errors %}
+                  <div class="text-danger small">
+                    {{ form.income_source.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Amount <span class="text-danger">*</span>
+                </label>
+
+                <div class="input-group">
+                  <span class="input-group-text bg-success text-white">FRW</span>
+                  {{ form.amount|add_class:"form-control" }}
+                </div>
+
+                {% if form.amount.errors %}
+                  <div class="text-danger small">
+                    {{ form.amount.errors.0 }}
+                  </div>
+                {% endif %}
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-md-6">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Receipt Ref No
+                </label>
+                {{ form.receipt_ref_no|add_class:"form-control" }}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Description
+                </label>
+                {{ form.description|add_class:"form-control" }}
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- SUBMIT -->
+          <div class="mt-4 d-flex justify-content-end">
+            <button type="submit" class="btn btn-success px-4 shadow-sm">
+              Submit Income
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+  {% include "partials/recent_operations.html" %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const alertBox = document.getElementById("flash-message");
+    if (alertBox) {
+      setTimeout(() => {
+        alertBox.classList.remove("show");
+        setTimeout(() => alertBox.remove(), 500);
+      }, 5000);
+    }
+  });
+</script>
+
+{% endblock %}

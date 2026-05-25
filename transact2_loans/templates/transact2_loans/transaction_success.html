@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="alert alert-success mt-4">
+    <h4>Transaction Successful 🎉</h4>
+    <p>Your  transaction  has been completed successfully.</p> <br>
+     <p>Wait Approaval </p>
+
+    <a href="{% url 'transact2_loans:loan_list' %}" class="btn btn-success">Go to Loan payment List</a>
+       <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">   ← Back to dashboard </a>
+  </div>
+
+{% endblock %}

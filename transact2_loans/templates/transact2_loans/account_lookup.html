@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% block title %}Account Lookup{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'mysite/css/account_lookup.css' %}">
+{% endblock %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Account Lookup</h2>
+
+    <!-- Search Form -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            {{ form.account_number.label_tag }}
+            {{ form.account_number }}
+        </div>
+        <div class="col-md-4">
+            {{ form.account_name.label_tag }}
+            {{ form.account_name }}
+        </div>
+        <div class="col-md-4 align-self-end">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{% url 'transact2_loans:account_lookup' %}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <!-- Results Table -->
+    {% if accounts %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Account Number</th>
+                        <th>Member Name</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                        <tr>
+                            <td>{{ account.account_number }}</td>
+                            <td>{{ account.member.user.get_full_name }}</td>
+                            <td>{{ account.balance|floatformat:2 }}</td>
+                            <td>{{ account.get_status_type_display }}</td>
+                            <td>
+                                <a href="{% url 'transact2_loans:loan_entry' account.id %}" class="btn btn-sm btn-success">Loan / Top-Up</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for num in paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?{{ querystring }}&page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{{ querystring }}&page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-warning">No accounts found matching your search.</div>
+    {% endif %}
+</div>
+{% endblock %}

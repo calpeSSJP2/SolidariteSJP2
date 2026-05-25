@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Meetings</h2>
+
+    <!-- Add new meeting button meeting_Mngt-->
+    <div class="mb-3">
+        <a href="{% url 'meeting_Mngt:meeting-create' %}" class="btn btn-primary">Create New Meeting</a>
+    </div>
+
+    <!-- Meeting list -->
+    {% if meetings %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Topic</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meeting in meetings %}
+                <tr>
+                    <td>{{ meeting.topic }}</td>
+                    <td>{{ meeting.date }}</td>
+                    <td>{{ meeting.start_time }} - {{ meeting.end_time }}</td>
+                    <td>{{ meeting.created_by.get_full_name }}</td>
+                    <td>
+                        <a href="{% url 'meeting_Mngt:attendance-create' %}?meeting_id={{ meeting.id }}" class="btn btn-sm btn-success">Mark Attendance</a>
+                        <a href="{% url 'meeting_Mngt:decision-create' %}?meeting_id={{ meeting.id }}" class="btn btn-sm btn-warning">Add Decision</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No meetings have been scheduled yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

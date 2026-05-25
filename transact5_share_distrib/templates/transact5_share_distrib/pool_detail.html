@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container py-5">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Interest Pool {{ pool.year }}</h3>
+<a href="{% url 'transact5_share_distrib:pool-export-excel' pool.pk %}"
+       class="btn btn-success btn-sm">
+      Export Excel
+    </a>
+    <a href="{% url 'transact5_share_distrib:pool-list' %}" class="btn btn-outline-secondary btn-sm">
+      ← Back
+    </a>
+  </div>
+
+  <!-- SUMMARY CARD -->
+  <div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+
+    <div class="d-flex justify-content-between align-items-center text-center"
+         style="gap: 2cm; flex-wrap: wrap;">
+
+      <div class="flex-fill">
+        <h6>Total Interest</h6>
+        <h5 class="text-primary">{{ pool.total_interest }}</h5>
+      </div>
+
+      <div class="flex-fill">
+        <h6>To Distribute</h6>
+        <h5 class="text-warning">{{ distributable_amount }}</h5>
+      </div>
+
+      <div class="flex-fill">
+        <h6>Distributed</h6>
+        <h5 class="text-success">{{ pool.total_distributed}}</h5>
+      </div>
+
+      <div class="flex-fill">
+        <h6>Not Distributed</h6>
+        <h5 class="text-danger">{{ pool.total_not_distributed|default:0 }}</h5>
+      </div>
+
+      <div class="flex-fill">
+        <h6>Status</h6>
+
+        {% if pool.status == "distributed" %}
+          <span class="badge bg-success">Distributed</span>
+
+        {% elif pool.status == "approved" %}
+          <span class="badge bg-primary">Approved</span>
+
+        {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="mt-4">
+
+        <!-- ✅ APPROVE BUTTON (Manager only) -->
+        {% if pool.status == "pending" and request.user.is_authenticated %}
+        <form method="post" action="{% url 'transact5_share_distrib:approve' pool.pk %}" class="mb-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-lg px-5">
+            Approve (Manager)
+          </button>
+        </form>
+        {% endif %}
+
+        <!-- 🔥 DISTRIBUTE BUTTON -->
+        {% if pool.status == "approved" %}
+        <form method="post" action="{% url 'transact5_share_distrib:distribute' pool.pk %}">
+          {% csrf_token %}
+          <button  type="submit" class="btn btn-success btn-lg px-5">
+            Distribute Interest
+          </button>
+        </form>
+
+        {% endif %}
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SHARES TABLE -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+
+      <h5 class="mb-3">Member Shares</h5>
+
+     <table class="table table-bordered table-sm align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Account</th>
+      <th>Member</th>
+      <th>Principal</th>
+      <th>Ratio</th>
+      <th>Raw Interest</th>
+      <th>Distributed</th>
+      <th>Not Distributed</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for s in shares %}
+    <tr>
+      <td>{{ s.account.account_number }}</td>
+      <td>{{ s.account.member }}</td>
+      <td>{{ s.principal_snapshot }}</td>
+      <td>{{ s.ratio }}</td>
+
+      <td class="text-primary fw-bold">
+        {{ s.interest_earned|floatformat:2 }}
+      </td>
+
+      <td class="text-success fw-bold">
+        {{ s.distribute|floatformat:2 }}
+      </td>
+
+      <td class="text-danger fw-bold">
+        {{ s.not_distributed|floatformat:2 }}
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="7" class="text-center text-muted">
+        No distribution yet.
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+    </div>
+  </div>
+
+    </div>
+{% include "transact5_share_distrib/pagination.html" %}
+{% endblock %}

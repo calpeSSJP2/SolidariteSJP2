@@ -1,0 +1,32 @@
+<!-- templates/peerloans/lending_status.html -->
+{% extends "base.html" %}
+{% block content %}
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <h2>  <button type="submit" class="btn btn-primary">Lending Status </button> </h2>
+
+ <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+        ← Back to dashboard </a>
+</div>
+
+  <ul>
+    {% for status in lender_statuses %}
+      <li>
+        Lender: {{ status.lender }} | Total Lent: {{ status.total_lent }}
+      </li>
+    {% empty %}
+      <li>No lending status available.</li>
+    {% endfor %}
+  </ul>
+
+  <h2>Borrowing Status</h2>
+  <ul>
+    {% for status in borrower_statuses %}
+      <li>
+        Borrower: {{ status.borrower }} | Total Borrowed: {{ status.total_borrowed }}
+      </li>
+    {% empty %}
+      <li>No borrowing status available.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

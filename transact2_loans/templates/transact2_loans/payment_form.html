@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div style="display: flex; align-items: center; justify-content: space-between;">  <!-- to set btn on right -->
+  <h2>Loan Payment</h2>
+  <a href="{{ request.user.dashboard_url }}"  class="btn btn-secondary">← Back</a>
+</div>
+
+<!-- Member info -->
+<div class="mb-3">
+  <p><strong>Member:</strong> {{ loan.account.member.user.get_full_name }}</p>
+  <p><strong>Account:</strong> {{ loan.account.account_number }}</p>
+  <p><strong>Loan Balance:</strong> RWF {{ loan.balance|floatformat:2|intcomma }}</p>
+  <p><strong>Monthly Payment:</strong> RWF {{ loan.monthly_payment|floatformat:2|intcomma }}</p>
+</div>
+
+<hr>
+
+<!-- Main Payment Form -->
+<form id="paymentForm" method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <!-- Hidden input for JS -->
+  <input type="hidden" name="amount" id="amountInput">
+  <button type="submit" class="btn btn-success">Submit Payment</button>
+</form>
+
+<!-- Peer Loan Modal -->
+<div class="modal fade" id="peerLoanModal" tabindex="-1" aria-labelledby="peerLoanModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="confirmForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="peerLoanModalLabel">Unpaid Peer-to-Peer Loans</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Dear {{ loan.account.member.user.get_full_name }}, <br>
+            You still have unpaid peer-to-peer loans. You must settle them first before depositing this payment.
+          </p>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Loan ID</th>
+                <th>Lender</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="peerLoanList"></tbody>
+          </table>
+          <!-- Confirmation hidden inputs -->
+          <input type="hidden" name="confirm_peer_payment" value="yes">
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Confirm & Continue</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("paymentForm");
+  const modalEl = document.getElementById("peerLoanModal");
+  const modal = new bootstrap.Modal(modalEl);
+  const peerLoanList = document.getElementById("peerLoanList");
+  const confirmForm = document.getElementById("confirmForm");
+  const amountInput = document.getElementById("amountInput");
+
+  function submitForm(formElement, extraData = {}) {
+    const formData = new FormData(formElement);
+
+    // Merge extraData
+    for (const key in extraData) {
+      formData.set(key, extraData[key]);
+    }
+
+    return fetch(formElement.action || "", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: formData
+    }).then(res => res.json());
+  }
+
+  // Prevent multiple clicks
+  let submitting = false;
+
+  // Main form submission
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (submitting) return;
+    submitting = true;
+
+    // Copy visible amount to hidden input
+    amountInput.value = form.querySelector('[name="amount"]').value || "0";
+
+    submitForm(form)
+      .then(data => {
+        if (data.requires_confirmation) {
+          peerLoanList.innerHTML = "";
+          data.loans.forEach(loan => {
+            peerLoanList.innerHTML += `
+              <tr>
+                <td>${loan.id}</td>
+                <td>${loan.lender_name}</td>
+                <td>RWF ${loan.amount}</td>
+              </tr>`;
+          });
+          modal.show();
+          submitting = false;
+        } else if (data.success) {
+          window.location.href = data.redirect_url;
+        } else {
+          console.error("Unexpected response:", data);
+          submitting = false;
+        }
+      })
+      .catch(err => {
+        console.error("Error submitting payment:", err);
+        submitting = false;
+      });
+  });
+
+  // Modal confirmation submission
+  confirmForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (submitting) return;
+    submitting = true;
+
+    const extraData = {
+      amount: form.querySelector('[name="amount"]').value || "0",
+      confirm_peer_payment: "yes"
+    };
+
+    submitForm(confirmForm, extraData)
+      .then(data => {
+        modal.hide();
+        if (data.success) {
+          window.location.href = data.redirect_url;
+        } else if (data.requires_confirmation) {
+          peerLoanList.innerHTML = "";
+          data.loans.forEach(loan => {
+            peerLoanList.innerHTML += `
+              <tr>
+                <td>${loan.id}</td>
+                <td>${loan.lender_name}</td>
+                <td>RWF ${loan.amount}</td>
+              </tr>`;
+          });
+          modal.show();
+          submitting = false;
+        } else {
+          submitting = false;
+        }
+      })
+      .catch(err => {
+        console.error("Error confirming payment:", err);
+        submitting = false;
+      });
+  });
+});
+</script>
+
+{% endblock %}

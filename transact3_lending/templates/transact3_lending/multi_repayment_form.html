@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <a href="{% url 'transact3_lending:peer_loan_list' %}"
+       class="btn btn-secondary mb-3">
+        ← Back to Loans
+    </a>
+
+    <h2>
+        Repay Multiple Loans
+        {% if selected_borrower %}
+            for {{ selected_borrower.member.user.first_name }}
+            {{ selected_borrower.member.user.last_name }}
+        {% else %}
+            for {{ user.first_name }} {{ user.last_name }}
+        {% endif %}
+    </h2>
+
+    {# 🔍 Borrower Search — OFFICER & MANAGER only #}
+    {% if user.role == 'officer' or user.role == 'manager' %}
+    <form method="get" class="mb-4">
+        <div class="row g-2 align-items-center">
+
+            <div class="col-md-4">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search_query }}"
+                    class="form-control"
+                    placeholder="Search borrower by first or last name">
+            </div>
+
+            <div class="col-md-4">
+                <select name="borrower_id"
+                        class="form-select"
+                        onchange="this.form.submit()">
+                    <option value="">-- Select Borrower --</option>
+                    {% for borrower in borrowers %}
+                        <option value="{{ borrower.id }}"
+                            {% if borrower == selected_borrower %}selected{% endif %}>
+                            {{ borrower.member.user.first_name }}
+                            {{ borrower.member.user.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit"
+                        class="btn btn-primary w-100">
+                    Search
+                </button>
+            </div>
+
+        </div>
+    </form>
+    {% endif %}
+
+    {# 🔔 Messages #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="alert alert-info">
+            <strong>Total Borrowed:</strong>
+            {{ total_borrowed|floatformat:2 }} RWF<br>
+
+            <strong>Total Paid:</strong>
+            {{ total_paid|floatformat:2 }} RWF
+        </div>
+
+        <h4>Loans from Lenders</h4>
+
+        {% if loans %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Lender</th>
+                    <th>Loan Amount</th>
+                    <th>Total Paid</th>
+                    <th>Remaining Balance</th>
+                    <th>Repayment Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td>
+                        {{ loan.lender.member.user.first_name }}
+                        {{ loan.lender.member.user.last_name }}
+                    </td>
+                    <td>{{ loan.amount|floatformat:2 }} RWF</td>
+                    <td>{{ loan.total_paid|floatformat:2 }} RWF</td>
+                    <td>{{ loan.remaining_balance|floatformat:2 }} RWF</td>
+                    <td>
+                        <input
+                            type="number"
+                            name="loan_{{ loan.id }}"
+                            class="form-control"
+                            min="0.01"
+                            max="{{ loan.remaining_balance }}"
+                            step="0.01"
+                            placeholder="Repay amount">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit"
+                class="btn btn-success mt-3">
+            Submit Repayment
+        </button>
+
+        {% else %}
+        <div class="alert alert-info">
+            No unpaid loans found for this borrower.
+        </div>
+        {% endif %}
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Delete User</h2>
+
+<p>
+    Are you sure you want to delete:
+    <strong>{{ object.username }}</strong>?
+</p>
+
+<p>
+    Name: {{ object.first_name }} {{ object.last_name }} <br>
+    Phone: {{ object.telephone }}
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" style="color: red;">Yes, Delete</button>
+</form>
+
+<br>
+
+<a href="{% url 'accounts:member_account-list' %}">Cancel</a>
+
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h4>Loan Workflow Tracking</h4>
+
+<hr>
+
+<h6>Loan Information</h6>
+
+<p><strong>Loan ID:</strong> {{ loan.id }}</p>
+<p><strong>Amount:</strong> {{ loan.amount }}</p>
+<p><strong>Status:</strong> {{ loan.status }}</p>
+
+<hr>
+
+{% if workflow %}
+
+<h6>Current Workflow</h6>
+
+<p>
+    <strong>Stage:</strong>
+    {{ workflow.get_stage_display }}
+</p>
+
+<p>
+    <strong>Current Handler:</strong>
+    {{ workflow.current_handler }}
+</p>
+
+<p>
+    <strong>Days In Stage:</strong>
+    {{ workflow.days_in_current_stage }}
+</p>
+
+<hr>
+
+<h6>Move Stage</h6>
+
+<form method="post"
+      action="{% url 'transact2_loans:workflow-move' workflow.id %}">
+
+    {% csrf_token %}
+
+    <select name="stage">
+
+        <option value="officer_review">
+            Officer Review
+        </option>
+
+        <option value="manager_review">
+            Manager Review
+        </option>
+
+        <option value="disbursed">
+            Disbursed
+        </option>
+
+        <option value="closed">
+            Closed
+        </option>
+
+    </select>
+
+    <button type="submit">
+        Update Stage
+    </button>
+
+</form>
+
+<hr>
+
+<h6>Workflow History</h6>
+
+<table border="1" cellpadding="10">
+
+    <tr>
+        <th>Stage</th>
+        <th>Handler</th>
+        <th>Moved At</th>
+    </tr>
+
+    {% for item in history %}
+
+    <tr>
+        <td>{{ item.get_stage_display }}</td>
+        <td>{{ item.handler }}</td>
+        <td>{{ item.moved_at }}</td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No workflow exists.</p>
+
+{% endif %}
+
+{% endblock %}
