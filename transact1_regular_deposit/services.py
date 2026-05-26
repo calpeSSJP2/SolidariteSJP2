@@ -1,25 +1,15 @@
 import logging
-from accounts.models import SJP2_Account, MemberAccount, IncomeSource, ExpensePurpose
 
 logger = logging.getLogger(__name__)
-
+from decimal import Decimal, ROUND_HALF_UP
+from django.core.exceptions import ValidationError
+from accounts.models import MemberAccount, SJP2_Account,AccountStatusHistory,IncomeSource, ExpensePurpose
 from ledger.services import LedgerService
-from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction
-from django.core.exceptions import ValidationError
-
-logger = logging.getLogger(__name__)
-
-from decimal import Decimal, ROUND_HALF_UP
-from django.db import transaction
-from django.core.exceptions import ValidationError
 from django.utils import timezone
-from accounts.models import MemberAccount, SJP2_Account
-from ledger.services import LedgerService
+from ledger.models import AccountStatement
 
-import logging
 
-logger = logging.getLogger(__name__)
 
 class DepositDueTransactionService:
     FLAT_PENALTY_PER_MONTH = Decimal("500.00")
@@ -339,13 +329,7 @@ class SJP2TransactionService:
             amount=amount,
             description=description  )
 
-from django.db import transaction
 
-from decimal import Decimal
-from django.db import transaction
-from django.utils import timezone
-
-from ledger.models import AccountStatement
 
 
 class LegacyAccountUpdateService:
