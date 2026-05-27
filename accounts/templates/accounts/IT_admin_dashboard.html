@@ -224,6 +224,7 @@
          aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
       <div class="accordion-body py-2 px-3">
         <a href="{% url 'accounts:member_account-list' %}" class="nav-link px-3">📄 Account Reports</a>
+          <a href="{% url 'accounts:user_list' %}" class="nav-link px-3"> Account Profile</a>
         <a href="{% url 'ledger:account_statement_list' %}" class="nav-link px-3">🧾 Statement Account</a>
         <a href="{% url 'transact1_regular_deposit:transaction_list' %}" class="nav-link px-3">📊 SSJP2 Transfers</a>
           <a href="{% url 'transact2_loans:txn_bank_charge_list' %}" class="nav-link px-3">📊 Bank Charges (Due Check)</a>

@@ -135,8 +135,7 @@ path('users/<int:pk>/delete/', UserDeleteView.as_view(), name='user-delete'),
 ##
 # Create bank charge account, listviwis in loans, because they  comes from loans
     path( 'bank-charge-account/create/', BankChargesAccountCreateView.as_view(),
-        name='bank_charge_account_create'
-    ),
+        name='bank_charge_account_create'  ),
     # -------------------
     # SUCCESS PAGE
     # -------------------
