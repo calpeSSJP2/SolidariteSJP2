@@ -26,7 +26,7 @@ from django.contrib import messages
 from .models import Loan, LoanWorkflow, BankChargesTransaction
 
 from accounts.models import SJP2_Account, MemberAccount,BankChargesAccount
-from ledger.models import AccountStatement
+from ledger.models import AccountStatement,BankChargeStatement
 from ledger.services import LedgerService
 from transact1_regular_deposit.models import SJP2Transaction
 from transact3_lending.models import PeerToPeerLoan, PeerLoanRepayment
