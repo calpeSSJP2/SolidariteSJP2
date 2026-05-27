@@ -1541,7 +1541,7 @@ from .models import BankChargesTransaction
 
 class BankChargesTransactionListView(ListView):
     model = BankChargesTransaction
-    template_name = 'transact2_loans/bank_charge_transaction_list.html'
+    template_name = 'transact2_loans/bank_charges_transaction_list.html'
     context_object_name = 'processed_transactions'
     paginate_by = 10
 
