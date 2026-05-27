@@ -545,6 +545,7 @@ class BankChargesTransaction(ActiveAccountMixin):
             models.Index(fields=['reference']),
             models.Index(fields=['timestamp']),
             models.Index(fields=['transaction_type']), ]
+
     def save(self, *args, **kwargs):
 
         self.full_clean()
@@ -596,7 +597,18 @@ class BankChargesTransaction(ActiveAccountMixin):
                 credit=self.amount,
                 reference=reference)
 
+    def _ensure_sufficient_balance(self, account, amount, field_name):
 
+        from django.core.exceptions import ValidationError
+
+        if not account:
+            return
+
+        if account.balance < amount:
+            raise ValidationError({
+                field_name:
+                    f"Insufficient balance. Available: {account.balance}"
+            })
     def clean(self):
         from django.core.exceptions import ValidationError
 
