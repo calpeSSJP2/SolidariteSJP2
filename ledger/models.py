@@ -90,3 +90,59 @@ class SystemAccountStatement(models.Model):
         credit = totals['credit'] or Decimal('0.00')
 
         return credit - debit
+
+class BankChargeStatement(models.Model):
+
+    account = models.ForeignKey(
+        'accounts.BankChargesAccount',
+        on_delete=models.CASCADE,
+        related_name='statements'
+    )
+
+    date = models.DateTimeField(default=timezone.now)
+
+    transaction_type = models.CharField(max_length=30)
+
+    debit = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal('0.00')
+    )
+
+    credit = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal('0.00')
+    )
+
+    balance_after = models.DecimalField(
+        max_digits=15,
+        decimal_places=2
+    )
+
+    reference = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        ordering = ['date', 'id']
+
+    def clean(self):
+
+        if self.debit > 0 and self.credit > 0:
+            raise ValidationError(
+                "Only one of debit or credit can be set."
+            )
+
+        if self.debit == 0 and self.credit == 0:
+            raise ValidationError(
+                "Either debit or credit must be provided."
+            )
+
+    def __str__(self):
+        return (
+            f"{self.account.account_bnk_nbr} | "
+            f"{self.transaction_type}"
+        )

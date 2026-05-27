@@ -630,6 +630,18 @@ class BankChargesAccount(models.Model):
 
         super().save(*args, **kwargs)
 
+    @property
+    def available_balance(self):
+
+        totals = self.statements.aggregate(
+            debit=Sum('debit'),
+            credit=Sum('credit')
+        )
+
+        debit = totals['debit'] or Decimal('0.00')
+        credit = totals['credit'] or Decimal('0.00')
+
+        return credit - debit
     @staticmethod
     def get_bank_charge_account():
         return BankChargesAccount.objects.first()
