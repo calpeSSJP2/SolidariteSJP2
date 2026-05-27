@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (LoanWorkflowDetailView,LoanWorkflowDashboardView,MoveLoanStageView,
+from .views import (LoanWorkflowDetailView,LoanWorkflowDashboardView,MoveLoanStageView,BankChargesTransactionListView,
     LoanDetailView, TopUpLoanCreateView,EmergencyLoanRequestView,LoanOptionsView,  LoanPaymentView, LoanListView,MemberLoanListView,LoanRequestView,
     ApproveLoanView,RejectLoanView,LoanSummaryView, LoanTypeSummaryView, TellerAccountSearchView,PendingLoanView,
     LoanPaymentSearchView,LoanPaymentListView, LoanActionView)
@@ -55,6 +55,8 @@ path( 'loan-request/<int:account_id>/emergency/', EmergencyLoanRequestView.as_vi
     # Loan type summary (general overview of loan types)
     path('loan-type-summary/', LoanTypeSummaryView.as_view(), name='loan_type_summary'),
 path('loan/options/<int:account_id>/',  LoanOptionsView.as_view(),   name='loan_options'),
+    ##Charges Bnak
+path('transactions_bank/', BankChargesTransactionListView.as_view(), name='txn_bank_charge_list'),
 # Loan workflow)
 path( "workflow/<int:loan_id>/",LoanWorkflowDetailView.as_view(),  name="workflow-detail"),
     path( "workflow/move/<int:workflow_id>/",   MoveLoanStageView.as_view(), name="workflow-move" ),

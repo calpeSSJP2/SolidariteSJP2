@@ -564,7 +564,7 @@ class SJP2Transaction(ActiveAccountMixin, BaseTransaction): #(Base transaction ,
         super().clean()
 
 
-
+        # -------------------
 #| Scenario                                        | Result               |
 #| ----------------------------------------------- | -------------------- |
 #| paid_on ≤ due_date AND amount_paid ≥ amount_due | No penalty           |

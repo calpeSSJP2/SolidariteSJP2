@@ -568,6 +568,50 @@ class MembersProfileUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Profile updated successfully.")
         return super().form_valid(form)
 
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+
+from .forms import BankChargesAccountForm
+from .models import BankChargesAccount
+
+
+class BankChargesAccountCreateView(CreateView):
+
+    model = BankChargesAccount
+    form_class = BankChargesAccountForm
+
+    template_name = 'accounts/bank_charge_account_form.html'
+
+    success_url = reverse_lazy(
+        'transactions_bank:txn_bank_charge_list'
+    )
+
+    def dispatch(self, request, *args, **kwargs):
+
+        # Prevent creating more than one account
+        if BankChargesAccount.objects.exists():
+
+            messages.warning(
+                request,
+                "Bank charge account already exists."
+            )
+
+            return redirect(
+                'transactions_bank:txn_bank_charge_list'
+            )
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+
+        messages.success(
+            self.request,
+            "Bank charge account created successfully."
+        )
+
+        return super().form_valid(form)
 
 class DashboardStatsMixin:
     def get_dashboard_stats(self):

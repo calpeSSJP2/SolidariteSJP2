@@ -3,6 +3,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 
+from django.views.generic import ListView
+
+
 from decimal import Decimal
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -32,15 +35,15 @@ from django.views.generic import TemplateView, View
 
 from django.contrib import messages
 
-from .models import Loan, LoanWorkflow
+from .models import Loan, LoanWorkflow, BankChargesTransaction
 
-from accounts.models import SJP2_Account, MemberAccount
+from accounts.models import SJP2_Account, MemberAccount,BankChargesAccount
 from ledger.models import AccountStatement
 from ledger.services import LedgerService
 from transact1_regular_deposit.models import SJP2Transaction
 from transact3_lending.models import PeerToPeerLoan, PeerLoanRepayment
 
-from .models import Loan, LoanPayment
+from .models import Loan, LoanPayment,BankChargesTransaction
 from .forms import ( LoanRequestForm, LoanPaymentForm,  TopUpLoanForm,   AccountLookupForm,
     EmergencyLoanRequestForm,)
 from .services import LoanLimitService
@@ -118,19 +121,13 @@ class LoanRequestView(View):
             ):
                 messages.warning(
                     request,
-                    "Active loan detected. You can request a top-up or emergency loan instead."
-                )
-                return redirect(
-                    'transact2_loans:loan_action',
-                    account_id=self.account.id
-                )
+                    "Active loan detected. You can request a top-up or emergency loan instead." )
+                return redirect(   'transact2_loans:loan_action',    account_id=self.account.id      )
 
             # 🚫 Case 2: PENDING loan → block completely
             if self.existing_loan.status == Loan.LoanStatus.PENDING:
-                messages.error(
-                    request,
-                    "You already have a pending regular loan. Please wait for approval."
-                )
+                messages.error( request,
+                    "You already have a pending regular loan. Please wait for approval."    )
                 return redirect('transact2_loans:loan_list')
 
             # ✅ Case 3: ACTIVE but fully paid → allow new request
@@ -164,22 +161,12 @@ class LoanRequestView(View):
             loan.status = Loan.LoanStatus.PENDING
             loan.save()
 
-            messages.success(
-                request,
-                "Loan request submitted successfully. Awaiting approval."
-            )
-            return redirect(
-                'transact2_loans:loan_detail',
-                pk=loan.pk
-            )
+            messages.success(    request,
+                "Loan request submitted successfully. Awaiting approval."  )
+            return redirect( 'transact2_loans:loan_detail',    pk=loan.pk )
 
-        return render(
-            request,
-            self.template_name,
-            {'form': form, 'account': self.account}
-        )
-
-
+        return render(    request,
+            self.template_name,      {'form': form, 'account': self.account}   )
 
 #########################################################account>memeberprof>user
 class TopUpLoanCreateView(FormView):
@@ -327,8 +314,7 @@ class LoanOptionsView(TemplateView):
                 loan_type=Loan.LoanType.REGULAR,
                 status__in=[            Loan.LoanStatus.ACTIVE,
                     Loan.LoanStatus.PENDING        ]        )
-            .order_by("-issued_on")
-            .first()    )
+            .order_by("-issued_on")   .first()    )
         recent_ops = (  LoanPayment.objects
             .filter(loan__account=account)
             .select_related("loan")
@@ -579,7 +565,8 @@ class ApproveLoanView(View):
 
             # 3️⃣ Post interest to SJP2 (only once)
             system_account = SJP2_Account.get_main_account()
-
+            bank_charge_account = BankChargesAccount.get_bank_charge_account()
+            ##Side loan interest to deposit on ssjp2
             if not system_account:
                 raise ValidationError("Missing SJP2 system account.")
 
@@ -587,16 +574,39 @@ class ApproveLoanView(View):
                 from_member_account=loan.account,
                 to_sjp2_account=system_account,
                 transaction_type=SJP2Transaction.TransactionType.Loan_Interest,
-                description=f"Loan Interest {loan.pk}"
-            ).exists()
+                description=f"Loan Interest {loan.pk}" ).exists()
 
-            if not already_sjp2:
+            if not already_sjp2:  ##To check if it is not reccorded , add amount
                 SJP2Transaction.objects.create(
                     from_member_account=loan.account,
                     to_sjp2_account=system_account,
                     transaction_type=SJP2Transaction.TransactionType.Loan_Interest,
                     amount=loan.interest_amount,
                     description=f"Loan Interest {loan.pk}")
+            ##Side bank charge
+            if not system_account:
+                raise ValidationError("Missing SJP2 system account.")
+
+            already_bank_txn = BankChargesTransaction.objects.filter(
+                from_member_account=loan.account,
+                to_bank_charge_account=bank_charge_account,
+                transaction_type=BankChargesTransaction.TransactionType.DEPOSIT,
+                description=f"Loan Charges {loan.pk}" ).exists()
+
+            if not already_bank_txn:  ##To check if it is not reccorded , add amount
+                LOAN_CHARGE_LIMIT = Decimal("500000")
+                LOWER_CHARGE = Decimal("590")
+                HIGHER_CHARGE = Decimal("390")
+                charge_amount = ( LOWER_CHARGE if loan.amount <= LOAN_CHARGE_LIMIT
+                                  else HIGHER_CHARGE )
+
+                BankChargesTransaction.objects.create(
+                    from_member_account=loan.account,
+                    to_bank_charge_account=bank_charge_account,
+                    transaction_type=BankChargesTransaction.TransactionType.DEPOSIT,
+                    amount=charge_amount,
+                    description=f"Loan ICharges {loan.pk}")
+
         messages.success( request, "Loan approved and funds disbursed successfully!" )
         return redirect('transact2_loans:loan_detail', pk=loan.id)
 
@@ -1343,7 +1353,114 @@ class LoanPaymentView(FormView):
         return redirect(self.success_url)
 # =====================================================
 # CUSTOMER + STAFF TRACKING VIEW
-# =====================================================
+
+
+
+class BankChargesTransactionListView(ListView):
+    model = BankChargesTransaction
+    template_name = 'transact1_regular_deposit/bank_charges_transaction_list.html'
+    context_object_name = 'processed_transactions'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BankChargesTransaction.objects.select_related(
+            'from_member_account',
+            'to_member_account',
+            'from_bank_charge_account',
+            'to_bank_charge_account',
+            'performed_by',
+        ).order_by('-timestamp', '-id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        all_transactions = self.get_queryset()
+
+        page_obj = context['page_obj']
+        paginated_transactions = page_obj.object_list
+
+        running_balance = Decimal('0.00')
+
+        # -----------------------------------
+        # Calculate opening balance
+        # before current page
+        # -----------------------------------
+        if page_obj.start_index() > 1:
+            previous_transactions = all_transactions[
+                :page_obj.start_index() - 1
+            ]
+
+            for tx in previous_transactions:
+                running_balance += self._get_signed_amount(tx)
+
+        processed = []
+
+        # -----------------------------------
+        # Current page transactions
+        # -----------------------------------
+        for tx in paginated_transactions:
+
+            debit = Decimal('0.00')
+            credit = Decimal('0.00')
+
+            # -----------------------------------
+            # Deposit:
+            # Member pays bank charges
+            # Money enters bank charge account
+            # -----------------------------------
+            if tx.transaction_type == (
+                BankChargesTransaction.TransactionType.DEPOSIT
+            ):
+                credit = tx.amount
+                running_balance += credit
+
+            # -----------------------------------
+            # Withdrawal:
+            # Bank charge account pays member
+            # Money leaves bank charge account
+            # -----------------------------------
+            elif tx.transaction_type == (
+                BankChargesTransaction.TransactionType.WITHDRAWAL
+            ):
+                debit = tx.amount
+                running_balance -= debit
+
+            processed.append({
+                'transaction': tx,
+                'debit': debit,
+                'credit': credit,
+                'balance': running_balance,
+            })
+
+        context['processed_transactions'] = processed
+
+        context['total_amount'] = sum(
+            self._get_signed_amount(tx)
+            for tx in all_transactions
+        )
+
+        return context
+
+    def _get_signed_amount(self, tx):
+
+        # -----------------------------------
+        # Deposit increases bank charge balance
+        # -----------------------------------
+        if tx.transaction_type == (
+            BankChargesTransaction.TransactionType.DEPOSIT
+        ):
+            return tx.amount
+
+        # -----------------------------------
+        # Withdrawal decreases bank charge balance
+        # -----------------------------------
+        elif tx.transaction_type == (
+            BankChargesTransaction.TransactionType.WITHDRAWAL
+        ):
+            return -tx.amount
+
+        return Decimal('0.00')
+
 
 class LoanWorkflowDetailView(LoginRequiredMixin, TemplateView):
 
@@ -1415,3 +1532,86 @@ class MoveLoanStageView(LoginRequiredMixin, FormView):
             )
 
         return super().dispatch(request, *args, **kwargs)
+from decimal import Decimal
+
+from django.views.generic import ListView
+
+from .models import BankChargesTransaction
+
+
+class BankChargesTransactionListView(ListView):
+    model = BankChargesTransaction
+    template_name = 'transact2_loans/bank_charge_transaction_list.html'
+    context_object_name = 'processed_transactions'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BankChargesTransaction.objects.select_related(
+            'from_member_account',
+            'to_member_account',
+            'from_bank_charge_account',
+            'to_bank_charge_account',
+            'performed_by',
+        ).order_by('-timestamp', '-id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        all_transactions = self.get_queryset()
+
+        page_obj = context['page_obj']
+        paginated_transactions = page_obj.object_list
+
+        running_balance = Decimal('0.00')
+
+        # Previous pages balance
+        if page_obj.start_index() > 1:
+
+            previous_transactions = all_transactions[
+                :page_obj.start_index() - 1
+            ]
+
+            for tx in previous_transactions:
+                running_balance += self._get_signed_amount(tx)
+
+        processed = []
+
+        for tx in paginated_transactions:
+
+            debit = Decimal('0.00')
+            credit = Decimal('0.00')
+
+            # Money entering bank charge account
+            if tx.transaction_type == BankChargesTransaction.TransactionType.DEPOSIT:
+
+                credit = tx.amount
+                running_balance += credit
+
+            # Money leaving bank charge account
+            elif tx.transaction_type == BankChargesTransaction.TransactionType.WITHDRAWAL:
+
+                debit = tx.amount
+                running_balance -= debit
+
+            processed.append({
+                'transaction': tx,
+                'debit': debit,
+                'credit': credit,
+                'balance': running_balance,
+            })
+
+        context['processed_transactions'] = processed
+
+        context['total_amount'] = sum(
+            self._get_signed_amount(tx)
+            for tx in all_transactions
+        )
+
+        return context
+
+    def _get_signed_amount(self, tx):
+
+        if tx.transaction_type == BankChargesTransaction.TransactionType.WITHDRAWAL:
+            return -tx.amount
+
+        return tx.amount

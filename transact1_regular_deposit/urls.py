@@ -50,6 +50,7 @@ path(  'legacy/<int:account_id>/', LegacyAccountImportView.as_view(), name='lega
     path('transactions/', SJP2TransactionListView.as_view(), name='transaction_list'),
     path('transactions/<int:pk>/', SJP2TransactionDetailView.as_view(), name='transaction_detail'),
 
+
     # ----- Other Financial Operations -----
     path('external-income/', ExternalIncomeCreateView.as_view(), name='external-income-create'),
     path('record-expense/', ExpenseCreateView.as_view(), name='record-expense'),

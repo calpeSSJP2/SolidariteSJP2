@@ -305,3 +305,39 @@ class MemberAccountCreateForm(forms.ModelForm):
                 "will be used automatically."
             )
         }
+
+from django import forms
+
+from .models import BankChargesAccount
+
+
+class BankChargesAccountForm(forms.ModelForm):
+
+    class Meta:
+        model = BankChargesAccount
+
+        fields = [
+            'bank_name',
+            'account_name',
+            'status_type',
+            'is_active',
+        ]
+
+        widgets = {
+            'bank_name': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+
+            'account_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter account name'
+            }),
+
+            'status_type': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }

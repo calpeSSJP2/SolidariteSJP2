@@ -789,3 +789,4 @@ class LegacyAccountImportView(
             "form": form,
             "account": self.account
         })
+

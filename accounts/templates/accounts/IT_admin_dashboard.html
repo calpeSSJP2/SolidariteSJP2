@@ -74,18 +74,19 @@
          aria-labelledby="headingMain" data-bs-parent="#sidebarAccordion">
       <div class="accordion-body py-2 px-3">
 
-        <a href="{% url 'accounts:sjp2account-create' %}" class="nav-link px-3">2. SSJP2 Account</a>
-        <a href="{% url 'accounts:register' %}" class="nav-link px-3">3. Register Members</a>
-        <a href="{% url 'accounts:member_account-create' %}" class="nav-link px-3">4. Open Member Account</a>
+        <a href="{% url 'accounts:sjp2account-create' %}" class="nav-link px-3">2.SSJP2 Account</a>
+          <a href="{% url 'accounts:bank_charge_account_create' %}" class="nav-link px-3">3.Bank_charges Account</a>
+        <a href="{% url 'accounts:register' %}" class="nav-link px-3">4. Register Members</a>
+        <a href="{% url 'accounts:member_account-create' %}" class="nav-link px-3"> 5.Open Member Account</a>
 
-        <a href="{% url 'accounts:member_account-actions' %}" class="nav-link px-3">5. Suspend/Dormant Member Account</a>
+        <a href="{% url 'accounts:member_account-actions' %}" class="nav-link px-3">6. Suspend/Dormant Member Account</a>
 
-        <a href="{% url 'accounts:ssjp2_account-actions' %}" class="nav-link px-3">6. SSJP2 Account Actions</a>
-               <a href="{% url 'accounts:profile-edit' %}" class="nav-link px-3">7Edit Profile</a>
+        <a href="{% url 'accounts:ssjp2_account-actions' %}" class="nav-link px-3">7. SSJP2 Account Actions</a>
+               <a href="{% url 'accounts:profile-edit' %}" class="nav-link px-3">8.Edit Profile</a>
 
-        <a href="{% url 'accounts:password_reset' %}" class="nav-link px-3"> 8 Change Password </a>
-         <a href="{% url 'accounts:user_list' %}" class="nav-link px-3">9. 👁️ View Username </a>
-          <a href="" class="nav-link px-3">10. System Info </a>
+        <a href="{% url 'accounts:password_reset' %}" class="nav-link px-3"> 9. Change Password </a>
+         <a href="{% url 'accounts:user_list' %}" class="nav-link px-3">10. 👁️ View Username </a>
+          <a href="" class="nav-link px-3">11. System Info </a>
 
 
       </div>
@@ -225,6 +226,8 @@
         <a href="{% url 'accounts:member_account-list' %}" class="nav-link px-3">📄 Account Reports</a>
         <a href="{% url 'ledger:account_statement_list' %}" class="nav-link px-3">🧾 Statement Account</a>
         <a href="{% url 'transact1_regular_deposit:transaction_list' %}" class="nav-link px-3">📊 SSJP2 Transfers</a>
+          <a href="{% url 'transact2_loans:txn_bank_charge_list' %}" class="nav-link px-3">📊 Bank Charges (Due Check)</a>
+
           <a href="{% url 'transact2_loans:loan_list' %}" class="nav-link px-3">📋 Loan Reports</a>
           <a href="{% url 'transact3_lending:borrower_lender_Search' %}" class="nav-link px-3">🤝 All borrower Search</a>
            <a href="{% url 'transact4_share_mngt:share_trans_report' %}" class="nav-link px-3">🤝 Share report</a>

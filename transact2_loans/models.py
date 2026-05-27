@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from decimal import Decimal, ROUND_DOWN
 from calendar import monthrange
@@ -507,7 +508,156 @@ class Loan(ActiveAccountMixin, models.Model):
         with transaction.atomic():
             super().save(*args, **kwargs)
 
-            # 🔹 Activation side-effects
+            # 🔹
+class BankChargesTransaction(ActiveAccountMixin):
+
+    class TransactionType(models.TextChoices):
+        DEPOSIT = 'deposit', 'Deposit'
+        WITHDRAWAL = 'withdrawal', 'Withdrawal'
+
+    # Member side
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+
+    from_member_account = models.ForeignKey('accounts.MemberAccount',   on_delete=models.SET_NULL,
+        null=True,   blank=True,  related_name='bank_charge_outgoing' )
+
+    to_member_account = models.ForeignKey('accounts.MemberAccount',    on_delete=models.SET_NULL,
+        null=True, blank=True,  related_name='bank_charge_incoming'  )
+
+    # Bank charges side
+    from_bank_charge_account = models.ForeignKey(  'accounts.BankChargesAccount',
+        on_delete=models.SET_NULL, null=True,  blank=True,   related_name='outgoing_transactions' )
+
+    to_bank_charge_account = models.ForeignKey('accounts.BankChargesAccount',  on_delete=models.SET_NULL,
+        null=True, blank=True,   related_name='incoming_transactions' )
+
+    transaction_type = models.CharField( max_length=30,   choices=TransactionType.choices )
+    ledger_posted = models.BooleanField(default=False)
+    reference = models.CharField( max_length=50, unique=True,  editable=False, db_index=True )  ##see save
+    performed_by = models.ForeignKey( User, on_delete=models.SET_NULL,  null=True,  blank=True )
+
+    def __str__(self):
+        return f"{self.transaction_type} - {self.amount}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['reference']),
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['transaction_type']), ]
+    def save(self, *args, **kwargs):
+
+        self.full_clean()
+        if not self.reference:
+            self.reference = f"BCT-{uuid.uuid4().hex[:10].upper()}"
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            if not self.ledger_posted:
+                self._create_ledger_entry()
+
+                self.ledger_posted = True
+
+                super().save(update_fields=['ledger_posted'])
+
+    def _create_ledger_entry(self):
+        from ledger.services import LedgerService
+        reference = f"BankchargesTransaction ID {self.pk}"
+
+        if self.transaction_type == self.TransactionType.DEPOSIT:
+            # Member loses money
+            LedgerService.create_statement(
+                account=self.from_member_account,
+                transaction_type='bank_charge_payment',
+                debit=self.amount,
+                credit=Decimal('0.00'),
+                reference=reference        )
+
+            # Bank charge account receives money
+            LedgerService.create_statement(
+                account=self.to_bank_charge_account,
+                transaction_type='bank_charge_payment',
+                debit=Decimal('0.00'),
+                credit=self.amount,
+                reference=reference    )
+
+        elif self.transaction_type == self.TransactionType.WITHDRAWAL:
+            LedgerService.create_statement(
+                account=self.from_bank_charge_account,
+                transaction_type='withdrawal',
+                debit=self.amount,
+                credit=Decimal('0.00'),
+                reference=reference)
+            LedgerService.create_statement(
+                account=self.to_member_account,
+                transaction_type='bank_charge_payment',
+                debit=Decimal('0.00'),
+                credit=self.amount,
+                reference=reference)
+
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+
+        # Check active accounts from mixin
+        self.check_active_accounts()
+
+        if self.amount <= 0:
+            raise ValidationError({
+                'amount': "Amount must be greater than zero."
+            })
+
+        # =========================
+        # DEPOSIT
+        # Member pays bank charges
+        # =========================
+        if self.transaction_type == self.TransactionType.DEPOSIT:
+
+            if not self.from_member_account:
+                raise ValidationError({
+                    'from_member_account':
+                        "Deposit must have a source member account."
+                })
+
+            if not self.to_bank_charge_account:
+                raise ValidationError({
+                    'to_bank_charge_account':
+                        "Deposit must have a destination bank charge account."
+                })
+
+            self._ensure_sufficient_balance(
+                self.from_member_account,
+                self.amount,
+                "from_member_account"
+            )
+
+        # =========================
+        # WITHDRAWAL
+        # Bank charge account pays member
+        # =========================
+        elif self.transaction_type == self.TransactionType.WITHDRAWAL:
+
+            if not self.from_bank_charge_account:
+                raise ValidationError({
+                    'from_bank_charge_account':
+                        "Withdrawal must have a source bank charge account."
+                })
+
+            if not self.to_member_account:
+                raise ValidationError({
+                    'to_member_account':
+                        "Withdrawal must have a destination member account."
+                })
+
+            self._ensure_sufficient_balance(
+                self.from_bank_charge_account,
+                self.amount,
+                "from_bank_charge_account"
+            )
+
 class LoanWorkflow(models.Model):
     class Stage(models.TextChoices):
         SUBMITTED = "submitted", "Submitted"

@@ -28,6 +28,8 @@ from .views import (
     SJP2AccountDetailView,
     SJP2AccountUpdateView,
 
+BankChargesAccountCreateView,
+
     SuspendAccountView,
     CloseAccountView,
     ActivateAccountView,
@@ -130,7 +132,11 @@ path('users/<int:pk>/delete/', UserDeleteView.as_view(), name='user-delete'),
     path('sjp2-accounts/<int:pk>/', SJP2AccountDetailView.as_view(), name='sjp2account-detail'),
     path('sjp2-accounts/<int:pk>/update/', SJP2AccountUpdateView.as_view(), name='sjp2account-update'),
     path('sjp2-accounts/<int:pk>/delete/', SJP2AccountDeleteView.as_view(), name='sjp2account-delete'),
-
+##
+# Create bank charge account, listviwis in loans, because they  comes from loans
+    path( 'bank-charge-account/create/', BankChargesAccountCreateView.as_view(),
+        name='bank_charge_account_create'
+    ),
     # -------------------
     # SUCCESS PAGE
     # -------------------

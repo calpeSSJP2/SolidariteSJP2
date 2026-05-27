@@ -260,6 +260,10 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 #py manage.py makemigrations
 #py manage.py migrate
 ##py pr manage.py runserver
+#git status
+#git add .
+#git commit -m "Add bank charge account creation system and transaction management"
+#git push origin main
 #########################################################
 #   SECRET_KEY=your-secret-key
 # #  DATABASE_URL=your-database-url

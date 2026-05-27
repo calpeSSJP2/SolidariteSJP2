@@ -9,6 +9,13 @@ from decimal import Decimal
 from django.urls import reverse
 ##from ledger.models import AccountStatement
 #from transact2_loans.models import Loan  # Make sure this import path is correct
+from django.utils import timezone
+from datetime import timedelta
+import random
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+import uuid
 SHARE_VALUE = Decimal('5000')
 
 class Role(models.Model): ##The change can also perfromed in signals
@@ -504,10 +511,7 @@ class ExpensePurpose(models.Model):
     is_active = models.BooleanField(default=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
-from django.db import models
-from django.conf import settings
-from django.utils import timezone
-import uuid
+
 ##Suspecious models
 class LoginAttempt(models.Model):
 
@@ -515,36 +519,21 @@ class LoginAttempt(models.Model):
         ('SUCCESS', 'SUCCESS'),
         ('FAILED', 'FAILED'),
         ('BLOCKED', 'BLOCKED'),
-        ('OTP_REQUIRED', 'OTP_REQUIRED'),
-    ]
+        ('OTP_REQUIRED', 'OTP_REQUIRED'),    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='login_attempts',
-        null=True,
-        blank=True
-    )
-
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,   on_delete=models.CASCADE,    related_name='login_attempts',
+        null=True,  blank=True  )
     username_entered = models.CharField(max_length=150)
-
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-
     browser = models.CharField(max_length=100, blank=True)
     operating_system = models.CharField(max_length=100, blank=True)
     device_type = models.CharField(max_length=50, blank=True)
-
     country = models.CharField(max_length=100, blank=True)
     city = models.CharField(max_length=100, blank=True)
-
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-
     reason = models.TextField(blank=True)
-
     login_time = models.DateTimeField(default=timezone.now)
-
     def __str__(self):
         return f"{self.username_entered} - {self.status}"
 
@@ -569,9 +558,7 @@ class TrustedDevice(models.Model):
     def __str__(self):
         return f"{self.user} - {self.browser}"
     
-from django.utils import timezone
-from datetime import timedelta
-import random
+
 
 class OTPCode(models.Model):
 
@@ -602,6 +589,60 @@ class OTPCode(models.Model):
     def generate_code():
         return str(random.randint(100000, 999999))
 
+class BankChargesAccount(models.Model):
+
+    class StatusType(models.TextChoices):
+        ACTIVE = "active", "Active"
+        CLOSED = "closed", "Closed"
+
+    class BankName(models.TextChoices):
+        EQUITY = "equity_bank", "Equity Bank"
+        Micro = "microfinance", "Microfinance"
+
+
+    account_bnk_nbr = models.CharField( max_length=30, unique=True  )
+    bank_name = models.CharField( max_length=30,   choices=BankName.choices, default=BankName.EQUITY)
+    account_name = models.CharField(max_length=100)
+    balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00') )
+    status_type = models.CharField(  max_length=20,  choices=StatusType.choices,
+        default=StatusType.ACTIVE  )
+    purpose = models.CharField(max_length=100, default='System Charges')  # Fixed def
+    created_on = models.DateTimeField(auto_now_add=True  )
+    last_activity_on = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.account_name}"
+    def update_activity(self):
+        self.last_activity_on = timezone.now()
+        # ❌ Pass _from_ledger=True so it doesn't trigger direct balance error
+        self.save(update_fields=['last_activity_on'], _from_ledger=True)  # ❌
+    def save(self, *args, **kwargs):
+        # Ensure there's only one account
+        if not self.pk and BankChargesAccount.objects.exists():
+            raise ValidationError("Only one Bank  system account is allowed.")
+
+        # Auto-generate unique account number if not set
+        if not self.account_bnk_nbr:
+            self.account_bnk_nbr = "Bank-SYSTEM"
+
+        # Force purpose to be consistent
+        self.purpose = "System Charges"
+
+        # Handle '_from_ledger' explicitly
+        from_ledger = kwargs.pop('_from_ledger', False)  # Extract '_from_ledger' if passed
+        if from_ledger:
+            # Perform necessary operations related to ledger updates (balance, etc.)
+            self.balance += kwargs.get('balance_amount', Decimal('0.00'))
+
+        super().save(*args, **kwargs)  # Call the parent save method
+        if from_ledger:
+            # Additional logic for ledger-related operations can go here
+            pass
+
+    @staticmethod
+    def get_bank_charge_account():
+        return BankChargesAccount.objects.first()
 ##shortcut to create a folder inside other folder:  New-Item -ItemType Directory accounts\management
 ##New-Item -ItemType Directory accounts\management\commands
 ##New-Item accounts\management\__init_
