@@ -518,7 +518,7 @@ class BankChargesTransaction(ActiveAccountMixin):
     # Member side
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     timestamp = models.DateTimeField(default=timezone.now, db_index=True)
-
+    description = models.TextField(blank=True)
     from_member_account = models.ForeignKey('accounts.MemberAccount',   on_delete=models.SET_NULL,
         null=True,   blank=True,  related_name='bank_charge_outgoing' )
 

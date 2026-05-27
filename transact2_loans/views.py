@@ -3,18 +3,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 
-from django.views.generic import ListView
-
-
-from decimal import Decimal
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
-from django.contrib import messages
-from django.db import transaction
-from django.utils import timezone
-from django.views.generic import FormView
-from django.core.exceptions import ValidationError
-from .models import LoanWorkflow
 from accounts.utils.rbac import has_any_role, has_role, has_active_role
 from .forms import MoveStageForm
 from django.core.exceptions import ValidationError
@@ -25,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.views import View
+
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView, DetailView, CreateView, ListView, FormView)
@@ -403,71 +391,6 @@ class LoanActionView(TemplateView):
 
         context['show_emergency'] = True
         return context
-
-
-@method_decorator(login_required, name='dispatch')
-class ApproveLoanView1(View):
-    """
-    Approves a pending loan, disburses principal, and posts interest.
-    Idempotent: repeated clicks won't double-disburse.
-    """
-
-    def post(self, request, *args, **kwargs):
-        loan = Loan.objects.select_for_update().get(pk=self.kwargs['loan_id'])
-        ##Do'n't approve if youare not manager
-        if not request.user.has_role('manager'):
-            messages.error(request, "Only managers can approve loans.")
-            return redirect('transact2_loans:loan_detail', pk=loan.pk)
-               # Only allow approval if loan is PENDING
-        if loan.status != Loan.LoanStatus.PENDING:
-            messages.warning(request, "Loan has already been approved or processed.")
-            return redirect('transact2_loans:loan_detail', pk=loan.id)
-
-        with transaction.atomic():
-            # 1️⃣ Approve loan
-            loan.status = Loan.LoanStatus.ACTIVE
-            loan.performed_by = request.user
-            loan.performed_on = timezone.now()
-            loan.save(update_fields=['status', 'performed_by'])
-
-            # 2️⃣ Disburse principal if not already done
-            already_posted = AccountStatement.objects.filter(
-                reference=f"Loan ID {loan.pk}",
-                transaction_type=AccountStatement.TransactionType.LOAN_ISSUED
-            ).exists()
-
-            if not already_posted:
-                net_disbursed = loan.amount - loan.interest_amount
-
-                LedgerService.create_statement(
-                    account=loan.account,
-                    transaction_type=AccountStatement.TransactionType.LOAN_ISSUED,
-                    debit=net_disbursed,
-                    credit=Decimal("0.00"),
-                    reference=f"Loan ID {loan.pk}", )
-
-            # 3️⃣ Post interest to SJP2 (only once)
-            system_account = SJP2_Account.get_main_account()
-            if not system_account:
-                raise ValidationError("Missing SJP2 system account.")
-
-            already_sjp2 = SJP2Transaction.objects.filter(
-                from_member_account=loan.account,
-                to_sjp2_account=system_account,
-                transaction_type=SJP2Transaction.TransactionType.Loan_Interest,
-                description=f"Loan Interest {loan.pk}" ).exists()
-
-            if not already_sjp2:
-                SJP2Transaction.objects.create( from_member_account=loan.account,
-                                                to_sjp2_account=system_account,
-                                                transaction_type=SJP2Transaction.TransactionType.Loan_Interest,
-                                                amount=loan.interest_amount,
-                                                description=f"Loan Interest {loan.pk}" )
-
-        messages.success(request, "Loan approved and funds disbursed successfully!")
-        return redirect('transact2_loans:loan_detail', pk=loan.id)
-
-
 
 
 class RejectLoanView(LoginRequiredMixin, View):
