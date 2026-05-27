@@ -113,7 +113,39 @@ class LedgerService:
                 balance_after=new_balance,
                 reference=reference,
             )
+        # =========================
+        # BANK CHARGE ACCOUNT
+        # =========================
+        elif isinstance(account, BankChargesAccount):
 
+            # 🔒 LOCK ACCOUNT ROW
+            account = BankChargesAccount.objects.select_for_update().get(pk=account.pk)
+
+            last_stmt = (
+                SystemAccountStatement.objects
+                .filter(reference__isnull=False)
+                .order_by('-date', '-id')
+                .first()
+            )
+
+            ledger_balance = account.balance
+
+            # Apply mutation
+            new_balance = (account.balance + delta).quantize(Decimal("0.01"))
+
+            account.balance = new_balance
+            account.last_activity_on = timezone.now()
+
+            account.save(
+                update_fields=['balance', 'last_activity_on']       )
+
+            stmt = SystemAccountStatement.objects.create(
+                account=account,  # see note below
+                transaction_type=transaction_type,
+                debit=debit,
+                credit=credit,
+                balance_after=new_balance,
+                reference=reference,        )
         else:
             raise ValueError("Invalid account type")
 
