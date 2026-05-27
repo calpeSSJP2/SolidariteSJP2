@@ -3,7 +3,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .models import AccountStatement, SystemAccountStatement
-from accounts.models import MemberAccount, SJP2_Account
+from accounts.models import MemberAccount, SJP2_Account,BankChargesAccount
 
 
 class LedgerService:
