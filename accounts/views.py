@@ -585,7 +585,7 @@ class BankChargesAccountCreateView(CreateView):
     template_name = 'accounts/bank_charge_account_form.html'
 
     success_url = reverse_lazy(
-        'transactions_bank:txn_bank_charge_list'
+        'accounts:txn_bank_charge_list'
     )
 
     def dispatch(self, request, *args, **kwargs):

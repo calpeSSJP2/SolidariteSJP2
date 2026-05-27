@@ -590,55 +590,45 @@ class OTPCode(models.Model):
         return str(random.randint(100000, 999999))
 
 class BankChargesAccount(models.Model):
-
     class StatusType(models.TextChoices):
         ACTIVE = "active", "Active"
         CLOSED = "closed", "Closed"
 
     class BankName(models.TextChoices):
         EQUITY = "equity_bank", "Equity Bank"
-        Micro = "microfinance", "Microfinance"
+        MICRO = "microfinance", "Microfinance"
 
-
-    account_bnk_nbr = models.CharField( max_length=30, unique=True  )
-    bank_name = models.CharField( max_length=30,   choices=BankName.choices, default=BankName.EQUITY)
+    account_bnk_nbr = models.CharField(  max_length=30, unique=True,  editable=False  )
+    bank_name = models.CharField( max_length=30, choices=BankName.choices,  default=BankName.EQUITY )
     account_name = models.CharField(max_length=100)
-    balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00') )
-    status_type = models.CharField(  max_length=20,  choices=StatusType.choices,
-        default=StatusType.ACTIVE  )
-    purpose = models.CharField(max_length=100, default='System Charges')  # Fixed def
-    created_on = models.DateTimeField(auto_now_add=True  )
-    last_activity_on = models.DateTimeField(default=timezone.now, blank=True, null=True)
+    balance = models.DecimalField(    max_digits=15,   decimal_places=2,
+        default=Decimal('0.00')  )
+    status_type = models.CharField(  max_length=20, choices=StatusType.choices,default=StatusType.ACTIVE )
+    purpose = models.CharField(  max_length=100,  default='System Charges')
+    created_on = models.DateTimeField(auto_now_add=True)
+    last_activity_on = models.DateTimeField(   default=timezone.now,  blank=True,  null=True  )
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.bank_name} - {self.account_name}"
+
     def update_activity(self):
         self.last_activity_on = timezone.now()
-        # ❌ Pass _from_ledger=True so it doesn't trigger direct balance error
-        self.save(update_fields=['last_activity_on'], _from_ledger=True)  # ❌
+        self.save(update_fields=['last_activity_on'])
+
     def save(self, *args, **kwargs):
-        # Ensure there's only one account
+
         if not self.pk and BankChargesAccount.objects.exists():
-            raise ValidationError("Only one Bank  system account is allowed.")
-
-        # Auto-generate unique account number if not set
+            raise ValidationError(
+                "Only one Bank system account is allowed."
+            )
+       ##This Generate automatic account
         if not self.account_bnk_nbr:
-            self.account_bnk_nbr = "Bank-SYSTEM"
+            self.account_bnk_nbr = "BANK-SYSTEM"
 
-        # Force purpose to be consistent
         self.purpose = "System Charges"
 
-        # Handle '_from_ledger' explicitly
-        from_ledger = kwargs.pop('_from_ledger', False)  # Extract '_from_ledger' if passed
-        if from_ledger:
-            # Perform necessary operations related to ledger updates (balance, etc.)
-            self.balance += kwargs.get('balance_amount', Decimal('0.00'))
-
-        super().save(*args, **kwargs)  # Call the parent save method
-        if from_ledger:
-            # Additional logic for ledger-related operations can go here
-            pass
+        super().save(*args, **kwargs)
 
     @staticmethod
     def get_bank_charge_account():
