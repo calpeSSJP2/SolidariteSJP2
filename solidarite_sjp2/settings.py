@@ -294,4 +294,5 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 #ref:
 #refs/heads/master  malformed  ,Fix >> "ref: refs/heads/master" | Set-Content .git\HEAD
 
-##2.If file empty ,recover by >>>>git reflog . If corrupted use >>> ren .git .git_old, then >>git init
+##2.If file empty ,recover by >>>>git reflog . If corrupted use >>> ren .git .git_old, then >>git init , then >git add .
+###>>git commit -m "Recover repository"
