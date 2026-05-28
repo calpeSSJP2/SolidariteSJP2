@@ -1461,6 +1461,9 @@ from django.views.generic import ListView
 
 from .models import BankChargesTransaction
 
+from django.db.models import Q
+from datetime import datetime
+
 
 class BankChargesTransactionListView(ListView):
     model = BankChargesTransaction
@@ -1469,72 +1472,50 @@ class BankChargesTransactionListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return BankChargesTransaction.objects.select_related(
+
+        queryset = BankChargesTransaction.objects.select_related(
             'from_member_account',
             'to_member_account',
             'from_bank_charge_account',
             'to_bank_charge_account',
             'performed_by',
-        ).order_by('-timestamp', '-id')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        all_transactions = self.get_queryset()
-
-        page_obj = context['page_obj']
-        paginated_transactions = page_obj.object_list
-
-        running_balance = Decimal('0.00')
-
-        # Previous pages balance
-        if page_obj.start_index() > 1:
-
-            previous_transactions = all_transactions[
-                :page_obj.start_index() - 1
-            ]
-
-            for tx in previous_transactions:
-                running_balance += self._get_signed_amount(tx)
-
-        processed = []
-
-        for tx in paginated_transactions:
-
-            debit = Decimal('0.00')
-            credit = Decimal('0.00')
-
-            # Money entering bank charge account
-            if tx.transaction_type == BankChargesTransaction.TransactionType.DEPOSIT:
-
-                credit = tx.amount
-                running_balance += credit
-
-            # Money leaving bank charge account
-            elif tx.transaction_type == BankChargesTransaction.TransactionType.WITHDRAWAL:
-
-                debit = tx.amount
-                running_balance -= debit
-
-            processed.append({
-                'transaction': tx,
-                'debit': debit,
-                'credit': credit,
-                'balance': running_balance,
-            })
-
-        context['processed_transactions'] = processed
-
-        context['total_amount'] = sum(
-            self._get_signed_amount(tx)
-            for tx in all_transactions
         )
 
+        # SEARCH
+        search = self.request.GET.get('search')
+
+        if search:
+            queryset = queryset.filter(
+                Q(reference__icontains=search) |
+                Q(from_member_account__account_number__icontains=search) |
+                Q(to_member_account__account_number__icontains=search) |
+                Q(performed_by__username__icontains=search)
+            )
+
+        # START DATE
+        start_date = self.request.GET.get('start_date')
+
+        if start_date:
+            queryset = queryset.filter(
+                timestamp__date__gte=start_date
+            )
+
+        # END DATE
+        end_date = self.request.GET.get('end_date')
+
+        if end_date:
+            queryset = queryset.filter(
+                timestamp__date__lte=end_date
+            )
+
+        return queryset.order_by('-timestamp', '-id')
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        context['search'] = self.request.GET.get('search', '')
+        context['start_date'] = self.request.GET.get('start_date', '')
+        context['end_date'] = self.request.GET.get('end_date', '')
+
         return context
-
-    def _get_signed_amount(self, tx):
-
-        if tx.transaction_type == BankChargesTransaction.TransactionType.WITHDRAWAL:
-            return -tx.amount
-
-        return tx.amount
