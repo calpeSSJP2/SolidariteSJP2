@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<h2>New Loan Request</h2>
+
+<form method="post">
+  {% csrf_token %}
+
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {# Member field #}
+  <div class="mb-3">
+    {{ form.member.label_tag }}
+    {{ form.member }}
+    {% if form.member.help_text %}
+      <small class="form-text text-muted">{{ form.member.help_text }}</small>
+    {% endif %}
+
+    {# Top-up info #}
+    {% if form.instance.account %}
+      {% with active_loans=form.instance.account.loans.all %}
+        {% for loan in active_loans %}
+          {% if loan.can_be_topped_up %}
+            <div class="alert alert-info mt-2">
+              Member has an active loan (#{{ loan.pk }}) that can be topped up.
+              You can request a <strong>top-up</strong> instead of a new regular loan.
+            </div>
+          {% elif loan.status in loan.OPEN_STATUSES %}
+            <div class="alert alert-warning mt-2">
+              Member has an active or pending {{ loan.loan_type }} loan (#{{ loan.pk }}).
+              New loan requests of this type are blocked. Consider a top-up.
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+    {% endif %}
+  </div>
+
+  {# Loan type field #}
+  <div class="mb-3">
+    {{ form.loan_type.label_tag }}
+    {{ form.loan_type }}
+  </div>
+
+  {# Amount field #}
+  <div class="mb-3">
+    {{ form.amount.label_tag }}
+    {{ form.amount }}
+  </div>
+
+  {# Term field #}
+  <div class="mb-3">
+    {{ form.term_months.label_tag }}
+    {{ form.term_months }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit Request</button>
+</form>
+{% endblock %}

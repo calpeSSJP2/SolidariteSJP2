@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+
+  <h2 class="mb-3 text-center">👤 My Profile</h2>
+
+  <div class="d-flex justify-content-center align-items-start gap-4">
+
+    <!-- LEFT SVG -->
+    <div class="d-none d-lg-block">
+
+      <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- CIRCLE TEXT PATH -->
+        <defs>
+          <path id="circlePath"
+                d="M 180,180
+                   m -120,0
+                   a 120,120 0 1,1 240,0
+                   a 120,120 0 1,1 -240,0" />
+        </defs>
+
+        <!-- OUTER CIRCLE -->
+        <circle cx="180" cy="180" r="135"
+                stroke="#198754"
+                stroke-width="3"
+                fill="none"/>
+
+        <!-- INNER CIRCLE -->
+        <circle cx="180" cy="180" r="60"
+                fill="rgba(25,135,84,0.08)"/>
+
+        <!-- ICON -->
+        <text x="170" y="190" font-size="40">💰</text>
+
+        <!-- USERS -->
+        <g fill="#198754">
+          <circle cx="160" cy="140" r="8"/>
+          <rect x="153" y="148" width="14" height="20" rx="6"/>
+
+          <circle cx="200" cy="140" r="8"/>
+          <rect x="193" y="148" width="14" height="20" rx="6"/>
+        </g>
+
+        <!-- TOP ICON -->
+        <text x="180" y="80" font-size="30" text-anchor="middle">🤝</text>
+
+        <!-- 🔥 CURVED TEXT -->
+        <text font-size="16" fill="#198754" font-weight="600">
+          <textPath href="#circlePath" startOffset="50%" text-anchor="middle">
+             Solidarity Saint Jaul 2 • SSJP2 Saving System • Frendship & Finance • Gasabo • Jali
+          </textPath>
+        </text>
+
+      </svg>
+
+    </div>
+
+    <!-- CENTER PROFILE -->
+    <div style="width: 100%; max-width: 600px;">
+
+      <!-- USER CARD -->
+      <div class="card shadow-sm p-3 mb-3">
+        <h4>{{ user.get_full_name }}</h4>
+        <p class="text-muted">@{{ user.username }}</p>
+        <p><strong>Telephone:</strong> {{ user.telephone }}</p>
+      </div>
+
+      <!-- ROLES -->
+      <div class="card shadow-sm p-3 mb-3">
+        <h5>🎯 Roles</h5>
+
+        {% for role in roles %}
+          <span class="badge bg-primary me-1">
+            {{ role.name }}
+          </span>
+        {% empty %}
+          <p>No roles assigned</p>
+        {% endfor %}
+      </div>
+
+      <!-- PROFILE INFO -->
+      <div class="card shadow-sm p-3 mb-3">
+        <h5>📄 Profile Details</h5>
+
+        {% if profile %}
+          <p><strong>National ID:</strong> {{ profile.national_id }}</p>
+          <p><strong>Address:</strong> {{ profile.address }}</p>
+        {% else %}
+          <p>No profile data found</p>
+        {% endif %}
+      </div>
+
+      <!-- ACCOUNT SUMMARY -->
+      <div class="card shadow-sm p-3 mb-3">
+        <h5>💰 Account Summary</h5>
+
+        {% if account %}
+          <p><strong>Status:</strong> {{ account.status }}</p>
+          <p><strong>Balance:</strong> {{ account.balance }}</p>
+        {% else %}
+          <p>No account linked</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- RIGHT SVG (same as left but mirrored content style optional) -->
+    <div class="d-none d-lg-block">
+
+      <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+        <defs>
+          <path id="circlePath2"
+                d="M 180,180
+                   m -120,0
+                   a 120,120 0 1,1 240,0
+                   a 120,120 0 1,1 -240,0" />
+        </defs>
+
+        <circle cx="180" cy="180" r="135"
+                stroke="#198754"
+                stroke-width="3"
+                fill="none"/>
+
+        <circle cx="180" cy="180" r="60"
+                fill="rgba(25,135,84,0.08)"/>
+
+        <text x="170" y="190" font-size="40">💰</text>
+
+        <g fill="#198754">
+          <circle cx="160" cy="140" r="8"/>
+          <rect x="153" y="148" width="14" height="20" rx="6"/>
+
+          <circle cx="200" cy="140" r="8"/>
+          <rect x="193" y="148" width="14" height="20" rx="6"/>
+        </g>
+
+        <text x="180" y="80" font-size="30" text-anchor="middle">🤝</text>
+
+        <text font-size="16" fill="#198754" font-weight="600">
+          <textPath href="#circlePath2" startOffset="50%" text-anchor="middle">
+            Solidarity Saint Jaul 2 • SSJP2 Saving System • Frendship & Finance • Gasabo • Jali
+          </textPath>
+        </text>
+
+      </svg>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

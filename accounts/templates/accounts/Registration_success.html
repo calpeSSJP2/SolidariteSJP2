@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="alert alert-success mt-4">
+    <h4>Regitration  Successful 🎉</h4>
+    <p>Member registration  has been completed successfully.</p>
+   <div>
+    <a href="{% url 'accounts:member_account-create' %}" class="btn btn-success">Create Member account </a>
+
+     <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary"> ← Back to dashaboard</a>  <!--to go to manager dashaboard it reuires login-->
+<a href="{% url 'accounts:login' %}" class="btn btn-success">back to login </a>
+
+    </div>
+     </div>
+{% endblock %}

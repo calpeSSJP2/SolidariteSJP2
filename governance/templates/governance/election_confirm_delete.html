@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Delete Election</h2>
+
+<p>Are you sure you want to delete "{{ object }}"?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'governance:election_list' %}" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
+
+{% endblock %}

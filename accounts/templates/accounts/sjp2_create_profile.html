@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+
+      <h1>Create SJP2 Profile</h1>
+
+<body>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Profile</button>
+    </form>
+</body>
+
+{% endblock %}

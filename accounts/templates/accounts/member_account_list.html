@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div style="display: flex; align-items: center; justify-content: space-between;">
+
+    {% if request.user.is_staff_viewer %}
+
+        <h3 style="margin: 0;">Member Accounts</h3>
+
+        <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+            ← Back
+        </a>
+
+    {% endif %}
+
+</div>
+
+    <table class="table table-bordered table-striped mt-3">
+
+        <thead>
+            <tr>
+                <th>#a</th>
+                <th>Member</th>
+                <th>Account No.</th>
+                <th>Open Date</th>
+                <th>Shares</th>
+                <th>Initial Deposit</th>
+                <th>Capital</th>
+                <th>Balance</th>
+                <th>Months Active</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for acc in accounts %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td>
+                    {{ acc.member.user.first_name }}
+                    {{ acc.member.user.last_name }}
+                </td>
+
+                <td>{{ acc.account_number }}</td>
+
+                <td>{{ acc.opened_on|date:"Y-m-d" }}</td>
+
+                <td>{{ acc.shares }}</td>
+
+                <td>{{ acc.initial_deposit }}</td>
+
+                <td>{{ acc.principal }}</td>
+
+                <td>{{ acc.balance }}</td>
+
+                <td>{{ acc.get_total_months_since_opened }}</td>
+
+                <td>{{ acc.get_status_type_display }}</td>
+
+                <td>
+                    <a href="{% url 'accounts:member_account-detail' acc.pk %}" class="btn btn-sm btn-info">
+                        View
+                    </a>
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="11" class="text-center">
+                    No accounts found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }}
+            of {{ page_obj.paginator.count }} accounts
+        </div>
+
+        {% include "accounts/pagination.html" %}
+
+</div>
+
+<div class="col-md-4 d-flex align-items-center justify-content-center marquee-wrapper">
+
+    <div class="marquee-content">
+        <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
+        <img src="{% static 'mysite/images/FaFa.JPG' %}" class="img-fluid rounded">
+    </div>
+
+</div>
+    </div>
+
+
+{% endblock %}

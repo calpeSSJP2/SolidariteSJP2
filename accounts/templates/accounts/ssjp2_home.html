@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm p-4">
+    <div class="row">
+
+ <!-- LEFT half: SVG illustration (blue theme friendly) -->
+<!-- LEFT half: SVG illustration (Bootstrap blue theme compatible) -->
+```html
+<div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+
+<style>
+
+svg {
+    overflow: visible;
+}
+
+text {
+    user-select: none;
+}
+
+/* OUTER CIRCLE DRAW */
+.draw-circle {
+    stroke-dasharray: 850;
+    stroke-dashoffset: 850;
+    animation: drawCircle 3s ease forwards;
+}
+
+@keyframes drawCircle {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* ROTATING TEXT */
+.rotating-text {
+    transform-origin: center;
+    animation: rotateText 25s linear infinite;
+}
+
+@keyframes rotateText {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* COMMUNITY PULSE */
+.community {
+    transform-origin: center;
+    animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.06);
+    }
+}
+
+/* FLOATING DOVES */
+.dove-left {
+    animation: floatLeft 3s ease-in-out infinite;
+}
+
+.dove-right {
+    animation: floatRight 3s ease-in-out infinite;
+}
+
+@keyframes floatLeft {
+
+    0%,100% {
+        transform: translate(140px,150px) scale(-1,1);
+    }
+
+    50% {
+        transform: translate(140px,145px) scale(-1,1);
+    }
+}
+
+@keyframes floatRight {
+
+    0%,100% {
+        transform: translate(220px,150px);
+    }
+
+    50% {
+        transform: translate(220px,145px);
+    }
+}
+
+/* SSJP2 GLOW */
+.glow {
+    animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+
+    0% {
+        filter: drop-shadow(0 0 2px #0d6efd);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px #0d6efd);
+    }
+
+    100% {
+        filter: drop-shadow(0 0 2px #0d6efd);
+    }
+}
+
+</style>
+
+<svg width="420" height="420"
+     viewBox="0 0 360 360"
+     xmlns="http://www.w3.org/2000/svg">
+
+    <!-- CIRCLE PATH -->
+    <defs>
+
+        <path id="circlePath"
+              d="M 180,180
+                 m -120,0
+                 a 120,120 0 1,1 240,0
+                 a 120,120 0 1,1 -240,0" />
+
+    </defs>
+
+    <!-- OUTER CIRCLE -->
+    <circle class="draw-circle"
+            cx="180"
+            cy="180"
+            r="135"
+            stroke="#198754"
+            stroke-width="10"
+            fill="none"/>
+
+    <!-- CENTER GLASS -->
+    <circle cx="180"
+            cy="180"
+            r="60"
+            fill="rgba(255,255,255,0.12)"/>
+
+    <!-- COMMUNITY -->
+    <g class="community" fill="#198754">
+
+        <circle cx="170" cy="160" r="8"/>
+        <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+        <circle cx="150" cy="175" r="7"/>
+        <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+        <circle cx="190" cy="175" r="7"/>
+        <rect x="184" y="183" width="12" height="18" rx="5"/>
+
+    </g>
+
+    <!-- MUSIC -->
+    <text x="160"
+          y="150"
+          font-size="40"
+          fill="#ffffff">
+        🎼
+    </text>
+
+    <!-- SSJP2 -->
+    <g class="glow">
+
+        <rect x="140"
+              y="100"
+              width="80"
+              height="40"
+              rx="6"
+              fill="#0d6efd"/>
+
+        <text x="180"
+              y="126"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              font-size="16"
+              font-weight="bold"
+              fill="#ffffff">
+
+            SSJP2
+
+        </text>
+
+    </g>
+
+    <!-- LEFT DOVE -->
+    <g class="dove-left">
+        <text font-size="36"
+              text-anchor="middle">
+            🕊️
+        </text>
+    </g>
+
+    <!-- RIGHT DOVE -->
+    <g class="dove-right">
+        <text font-size="36"
+              text-anchor="middle">
+            🕊️
+        </text>
+    </g>
+
+    <!-- CROSS -->
+    <text x="180"
+          y="220"
+          font-size="30"
+          text-anchor="middle"
+          fill="#ffffff">
+
+        ✝️
+
+    </text>
+
+    <!-- TOP MUSIC -->
+    <text x="170"
+          y="40"
+          font-size="45">
+
+        🎼
+
+    </text>
+
+    <!-- FINANCE -->
+    <g fill="#ffffff">
+
+        <text x="300"
+              y="175"
+              font-size="30">
+
+            💰
+
+        </text>
+
+        <text x="290"
+              y="200"
+              font-size="16">
+
+            FRW
+
+        </text>
+
+    </g>
+
+    <!-- HOUSING -->
+    <text x="175"
+          y="345"
+          font-size="34">
+
+        🏠
+
+    </text>
+
+    <!-- SOLIDARITY -->
+    <text x="40"
+          y="185"
+          font-size="40">
+
+        🤝
+
+    </text>
+
+    <!-- ROTATING TEXT -->
+    <g class="rotating-text">
+
+        <text font-size="16"
+              fill="#198754"
+              font-weight="600">
+
+            <textPath href="#circlePath"
+                      startOffset="50%"
+                      text-anchor="middle">
+
+                Solidarity SJP2 • Social • Financial System • Jali
+
+            </textPath>
+
+        </text>
+
+    </g>
+
+</svg>
+
+</div>
+```
+
+
+      <!-- RIGHT half: Login form / Dashboard Links -->
+      <div class="col-md-6">
+
+        {% if user.is_authenticated %}
+            <p>Hello, {{ user.first_name }} as current {{ user.role }} in Solidarite SJP2.</p>
+            <ul>
+              {% with user.role|upper as role_upper %}
+                  {% if role_upper == 'MANAGER' %}
+                      <li><a href="{% url 'accounts:manager-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'CUSTOMER' %}
+                      <li><a href="{% url 'accounts:customer-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'OFFICER' %}
+                      <li><a href="{% url 'accounts:officer-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'AUDITOR' %}
+                      <li><a href="{% url 'accounts:auditor-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'VERIFIER' %}
+                      <li><a href="{% url 'accounts:verifier-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% elif role_upper == 'IT_ADMIN' %}
+                      <li><a href="{% url 'accounts:it_admin-dashboard' %}">Go to {{ user.role }} Dashboard</a></li>
+                  {% endif %}
+              {% endwith %}
+              <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
+            </ul>
+        {% else %}
+            <div class="card shadow-sm border-0 p-4 text-center">
+
+    <h5 class="mb-3 text-primary fw-semibold">
+        Welcome to Solidarité SJP2
+    </h5>
+
+    <p class="text-muted mb-4">
+        Please sign in to access your dashboard and join the SSJP2 Members'.
+    </p>
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary px-4">
+            Login
+        </a>
+
+        <a href="{% url 'accounts:register' %}" class="btn btn-outline-success px-4">
+            Register
+        </a >
+
+    </div>
+
+</div>
+        {% endif %}
+      </div> <!-- End right column -->
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{% if form.instance.pk %}Update{% else %}Create{% endif %} SJP2 Account</h2>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Non-field form errors -->
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">  <!--Use this to show danger on form--->
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="form-group mb-3">
+      {{ form.account_nbr.label_tag }}
+      {{ form.account_nbr }}
+      {{ form.account_nbr.errors }}
+    </div>
+
+    <div class="form-group mb-3">
+      {{ form.purpose.label_tag }}
+      {{ form.purpose }}
+      {{ form.purpose.errors }}
+    </div>
+
+    <div class="form-group mb-3">
+      {{ form.balance.label_tag }}
+      {{ form.balance }}
+      {{ form.balance.errors }}
+    </div>
+    <div>  </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </form>  <a href="{% url 'accounts:ssjp2_account-actions' %}" class="btn btn-secondary"> Go to Update</a>
+
+{% endblock %}

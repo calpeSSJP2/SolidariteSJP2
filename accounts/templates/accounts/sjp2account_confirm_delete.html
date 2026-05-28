@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h2>Confirm Deletion</h2>
+    <p>Are you sure you want to delete the account: <strong>{{ object.account_nbr }}</strong>?</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <a href="{% url 'accounts:sjp2account-list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    </form>
+  </div>
+{% endblock %}

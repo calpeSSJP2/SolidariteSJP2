@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <a href="{% url 'transact3_lending:peer_loan_list' %}" class="btn btn-secondary mb-3">← Back to Loans</a>
+
+    <h2>Loan Details</h2>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Lender</th>
+            <td>{{ loan.lender.member.user.get_full_name }}</td>
+        </tr>
+        <tr>
+            <th>Borrower</th>
+            <td>{{ loan.borrower.member.user.get_full_name }}</td>
+        </tr>
+        <tr>
+            <th>Amount</th>
+            <td>{{ loan.amount|floatformat:2 }} Rwf</td>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <td>{{ loan.date|date:'M d, Y' }}</td>
+        </tr>
+        <tr>
+            <th>Paid?</th>
+            <td>
+                {% if loan.is_fully_paid %}
+                    <span class="badge bg-success">Yes</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">No</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Total Paid</th>
+            <td>{{ loan.total_paid|floatformat:2 }} RWF</td>
+        </tr>
+        <tr>
+            <tr>
+    <th>Remaining</th>
+    <td>{{ loan.remaining_balance|floatformat:2 }}RWF</td>
+</tr>
+
+
+        </tr>
+    </table>
+
+    <h4>Repayments</h4>
+    {% if loan.repayments.all %}
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Paid By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in loan.repayments.all %}
+            <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.amount }} RWF</td>
+                <td>{{ r.paid_by }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No repayments yet.</p>
+    {% endif %}
+
+
+</div>
+{% endblock %}

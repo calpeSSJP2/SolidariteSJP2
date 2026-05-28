@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between;">  <!-- to set btn on right -->
+    <h2>  <button type="submit" class="btn btn-primary">SSJP Transaction Detail</button> </h2>
+      <a href="{% url 'transact1_regular_deposit:transaction_list' %}" class="btn btn-success" >Back to list</a>
+      <a href="{% url 'accounts:officer-dashboard' %}" class="btn btn-secondary">← Back to Dashboard </a>
+    </div>
+<ul>
+    <li><strong>Type:</strong> {{ ssjp2transact.get_transaction_type_display }}</li>
+    <li><strong>Amount:</strong> {{ ssjp2transact.amount }}</li>
+    <li><strong>Date:</strong> {{ ssjp2transact.timestamp }}</li>
+    <li><strong>Description:</strong> {{ ssjp2transact.description }}</li>
+
+    <li><strong>From Member:</strong> {{ ssjp2transact.from_member_account }}</li>
+    <li><strong>From System:</strong> {{ ssjp2transact.from_sjp2_account }}</li>
+
+    <li><strong>To Member:</strong> {{ ssjp2transact.to_member_account }}</li>
+    <li><strong>To System:</strong> {{ ssjp2transact.to_sjp2_account }}</li>
+</ul>
+{% endblock %}

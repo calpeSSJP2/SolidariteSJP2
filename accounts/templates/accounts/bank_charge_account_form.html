@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Create Bank Charge Account
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- LEFT SIDE -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+
+        <svg width="360"
+             height="360"
+             viewBox="0 0 360 360"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <!-- CIRCLE PATH -->
+          <defs>
+
+            <path id="circlePath"
+                  d="M 180,180
+                     m -120,0
+                     a 120,120 0 1,1 240,0
+                     a 120,120 0 1,1 -240,0" />
+
+          </defs>
+
+          <!-- OUTER CIRCLE -->
+          <circle cx="180"
+                  cy="180"
+                  r="135"
+                  stroke="#198754"
+                  stroke-width="3"
+                  fill="none"/>
+
+          <!-- INNER CIRCLE -->
+          <circle cx="180"
+                  cy="180"
+                  r="60"
+                  fill="rgba(25,135,84,0.08)"/>
+
+          <!-- ICON -->
+          <text x="165"
+                y="192"
+                font-size="42">
+
+            🏦
+
+          </text>
+
+          <!-- SMALL MONEY ICONS -->
+          <text x="110"
+                y="150"
+                font-size="24">
+
+            💰
+
+          </text>
+
+          <text x="230"
+                y="150"
+                font-size="24">
+
+            💳
+
+          </text>
+
+          <!-- TOP ICON -->
+          <text x="180"
+                y="80"
+                font-size="30"
+                text-anchor="middle">
+
+            ⚙️
+
+          </text>
+
+          <!-- CURVED TEXT -->
+          <text font-size="16"
+                fill="#198754"
+                font-weight="600">
+
+            <textPath href="#circlePath"
+                      startOffset="50%"
+                      text-anchor="middle">
+
+              Solidarity SJP2 • Social • Financial System • Jali
+
+            </textPath>
+
+          </text>
+
+        </svg>
+
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-white p-4">
+
+        <div class="card border-0 shadow-lg rounded-4 w-100"
+             style="max-width: 450px;">
+
+          <div class="card-body p-4">
+
+            <!-- HEADER -->
+
+            <div class="text-center mb-4">
+
+              <h3 class="fw-bold text-success mb-1">
+                Create Bank Charge Account
+              </h3>
+
+              <p class="text-muted small mb-0">
+                Configure the main system bank charge account
+              </p>
+
+            </div>
+
+            <!-- FORM -->
+
+            <form method="post">
+
+              {% csrf_token %}
+
+              <!-- BANK NAME -->
+
+              <div class="mb-3">
+
+                <label class="form-label fw-semibold">
+                  Bank Name
+                </label>
+
+                {{ form.bank_name }}
+
+                {% if form.bank_name.errors %}
+
+                  <div class="text-danger small mt-1">
+                    {{ form.bank_name.errors }}
+                  </div>
+
+                {% endif %}
+
+              </div>
+
+              <!-- ACCOUNT NAME -->
+
+              <div class="mb-3">
+
+                <label class="form-label fw-semibold">
+                  Account Name
+                </label>
+
+                {{ form.account_name }}
+
+                {% if form.account_name.errors %}
+
+                  <div class="text-danger small mt-1">
+                    {{ form.account_name.errors }}
+                  </div>
+
+                {% endif %}
+
+              </div>
+
+              <!-- STATUS -->
+
+              <div class="mb-3">
+
+                <label class="form-label fw-semibold">
+                  Status
+                </label>
+
+                {{ form.status_type }}
+
+                {% if form.status_type.errors %}
+
+                  <div class="text-danger small mt-1">
+                    {{ form.status_type.errors }}
+                  </div>
+
+                {% endif %}
+
+              </div>
+
+              <!-- ACTIVE -->
+
+              <div class="form-check mb-4">
+
+                {{ form.is_active }}
+
+                <label class="form-check-label fw-semibold">
+                  Active Account
+                </label>
+
+              </div>
+
+              <!-- BUTTONS -->
+
+              <div class="d-flex justify-content-between align-items-center">
+
+                <!-- SUBMIT -->
+
+                <button type="submit"
+                        class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
+
+                  Create Account
+
+                </button>
+
+                <!-- BACK -->
+
+                <a href="{% url 'transact2_loans:txn_bank_charge_list' %}"
+                   class="btn btn-outline-secondary">
+
+                  ← Back
+
+                </a>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

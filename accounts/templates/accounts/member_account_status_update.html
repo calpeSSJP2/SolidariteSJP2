@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Update Account Status</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Update Status</button>
+  </form>
+  <a href="{% url 'accounts:member_account-detail' object.pk %}" class="btn btn-secondary mt-2">Cancel</a>
+</div>
+{% endblock %}

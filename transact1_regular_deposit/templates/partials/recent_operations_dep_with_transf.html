@@ -1,0 +1,90 @@
+<!-- ✅ TRANSACTION HISTORY (CENTERED UNDER BOTH COLUMNS) -->
+{% load humanize %}
+  <div class="row mt-4">
+    <div class="col-12">
+
+      <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-dark text-white text-center">
+          Recent Transactions
+        </div>
+
+        <div class="table-responsive">
+
+          <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Transaction Type</th>
+                <th>Account name</th>
+                <th>Details</th>
+                <th class="text-end">Amount (RWF)</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for tx in transactions %}
+              <tr>
+
+                <!-- DATE -->
+                <td>{{ tx.timestamp|date:"Y-m-d H:i" }}</td>
+
+                <!-- TYPE -->
+                <td>
+                  {% if tx.deposit_due %}
+                    <span class="badge bg-success">Deposit</span>
+                  {% elif tx.source_account %}
+                    <span class="badge bg-info">Transfer</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Withdrawal</span>
+                  {% endif %}
+                </td>
+
+                <!-- ACCOUNT -->
+
+                           <td>
+  {% if tx.account %}
+    {{ tx.account.full_name }}
+  {% elif tx.source_account %}
+    {{ tx.source_account.full_name }}
+  {% endif %}
+</td>
+
+
+                <!-- DETAILS -->
+                <td>
+                  {% if tx.source_account %}
+                    {{ tx.source_account.account_number }} → {{ tx.destination_account.account_number }}
+                  {% else %}
+                    {{ tx.account.account_number }}
+                  {% endif %}
+                </td>
+
+                <!-- AMOUNT -->
+                <td class="text-end fw-bold">
+                  {{ tx.amount|intcomma}}
+                </td>
+
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">
+                  No transactions yet
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+
+        </div>
+        {% include "transact1_regular_deposit/pagination.html" %}
+
+      </div>
+
+    </div>
+  </div>

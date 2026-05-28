@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- BACK BUTTON -->
+  <div class="mb-3">
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+      ← Back to dashboard
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+    <div class="row g-0">
+
+      <!-- ====================================== -->
+      <!-- LEFT SIDE: SVG -->
+      <!-- ====================================== -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light p-4">
+
+        <svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+
+          <!-- OUTER CIRCLE -->
+          <circle cx="180" cy="180" r="135"
+              stroke="#198754"
+              stroke-width="3"
+              fill="none"/>
+
+          <!-- INNER GLOW -->
+          <circle cx="180" cy="180" r="60"
+                  fill="rgba(25,135,84,0.08)"/>
+
+          <!-- COMMUNITY -->
+          <g fill="#198754">
+            <circle cx="170" cy="160" r="8"/>
+            <rect x="163" y="170" width="14" height="20" rx="6"/>
+
+            <circle cx="150" cy="175" r="7"/>
+            <rect x="144" y="183" width="12" height="18" rx="5"/>
+
+            <circle cx="190" cy="175" r="7"/>
+            <rect x="184" y="183" width="12" height="18" rx="5"/>
+          </g>
+
+          <!-- DOVES -->
+          <g transform="translate(140,150) scale(-1,1)">
+            <text font-size="26">🕊️</text>
+          </g>
+
+          <g transform="translate(220,150)">
+            <text font-size="26">🕊️</text>
+          </g>
+
+          <!-- EDUCATION -->
+          <text x="170" y="45" font-size="30">🎓</text>
+
+          <!-- MONEY -->
+          <text x="300" y="175" font-size="26">💰</text>
+
+          <!-- HOUSE -->
+          <text x="175" y="340" font-size="28">🏠</text>
+
+          <!-- HANDSHAKE -->
+          <text x="40" y="185" font-size="28">🤝</text>
+
+        </svg>
+
+      </div>
+
+      <!-- ====================================== -->
+      <!-- RIGHT SIDE: CONTENT -->
+      <!-- ====================================== -->
+      <div class="col-md-6 p-4">
+
+        <h4 class="mb-4 fw-bold text-primary">
+          Welcome to Solidarité SJP2
+        </h4>
+
+        <h5 class="mb-3">
+          {{ title }}
+        </h5>
+
+        <p class="text-muted">
+          <strong>Current share(s):</strong> {{ current_shares }}
+        </p>
+
+        <!-- FORM -->
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            {{ form.as_p }}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">
+            {{ button_label }}
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+{% if recent_ops %}
+
+<div class="mt-4">
+
+  <h6 class="fw-bold text-dark mb-3">
+    Recent 5 Share Operations
+  </h6>
+
+  <table class="table table-sm table-hover">
+
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Shares</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      {% for op in recent_ops %}
+      <tr>
+
+        <td>
+  {% if op.type == "Increase" %}
+  <span class="text-success">Increase</span>
+{% else %}
+  <span class="text-danger">Decrease</span>
+{% endif %}
+</td>
+
+        <td>
+          {{ op.nbr_share }}
+        </td>
+
+        <td class="text-muted small">
+  {{ op.date|date:"Y-m-d" }}
+</td>
+
+      </tr>
+      {% endfor %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+{% endif %}
+</div>
+
+{% endblock %}
