@@ -94,24 +94,45 @@ class StorageUsageView(LoginRequiredMixin, TemplateView):
 from django.db import connection
 
 
+from django.db import connection
+
 class DatabaseHealthView(LoginRequiredMixin, TemplateView):
 
     template_name = "system_monitor/database_health.html"
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
+
+        context["db_vendor"] = connection.vendor
 
         with connection.cursor() as cursor:
 
-            cursor.execute("""
-                SELECT table_name,
-                       ROUND(((data_length + index_length) / 1024 / 1024),2)
-                FROM information_schema.TABLES
-                WHERE table_schema = DATABASE()
-            """)
+            if connection.vendor == "postgresql":
 
-            context["tables"] = cursor.fetchall()
-            context["db_vendor"] = connection.vendor
+                cursor.execute("""
+                    SELECT
+                        relname,
+                        pg_total_relation_size(relid)
+                    FROM pg_catalog.pg_statio_user_tables
+                    ORDER BY pg_total_relation_size(relid) DESC
+                """)
+
+                context["tables"] = cursor.fetchall()
+
+            elif connection.vendor == "mysql":
+
+                cursor.execute("""
+                    SELECT table_name,
+                           ROUND(((data_length + index_length)/1024/1024),2)
+                    FROM information_schema.TABLES
+                    WHERE table_schema = DATABASE()
+                """)
+
+                context["tables"] = cursor.fetchall()
+
+            else:
+                context["tables"] = []
 
         return context
 
@@ -129,11 +150,13 @@ class SecurityLogView(LoginRequiredMixin, ListView):
 
     model = SecurityEvent
 
+    template_name = "system_monitor/security_logs.html"
+
     context_object_name = "events"
 
-    ordering = ["-timestamp"]
-
     paginate_by = 10
+
+    ordering = ["-timestamp"]
 
 
 class PerformanceView(LoginRequiredMixin, TemplateView):

@@ -3,12 +3,26 @@
 {% block content %}
 <h2>Security Logs</h2>
 
-<ul>
-{% for e in events %}
-    <li>
-        {{ e.timestamp }} - {{ e.event_type }} - {{ e.ip_address }}
-    </li>
-{% endfor %}
-</ul>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>User</th>
+            <th>IP</th>
+        </tr>
+    </thead>
 
+    <tbody>
+    {% for event in events %}
+        <tr>
+            <td>{{ event.timestamp }}</td>
+            <td>{{ event.event_type }}</td>
+            <td>{{ event.user }}</td>
+            <td>{{ event.ip_address }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+
+</table>
 {% endblock %}
