@@ -239,8 +239,7 @@ class MemberAccount(models.Model):
         AccountStatusHistory.objects.create(
             account=self,
             status_type=new_status,
-            started_on=now
-        )
+            started_on=now )
 
         # -----------------------------------
         # 3. UPDATE CURRENT ACCOUNT STATUS

@@ -26,11 +26,16 @@ from django.contrib.auth.views import (
     PasswordResetView,
     PasswordResetDoneView,
     PasswordResetConfirmView,
-    PasswordResetCompleteView
-)
+    PasswordResetCompleteView)
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
 
+from .forms import BankChargesAccountForm
+from .models import BankChargesAccount
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.urls import reverse, reverse_lazy
@@ -395,36 +400,56 @@ class MemberAccountUpdateView(LoginRequiredMixin,UpdateView):
 
 # accounts/views_account_actions.py
 
-
-
-class SuspendAccountView(LoginRequiredMixin,View):
+class SuspendAccountView(LoginRequiredMixin, View):
     def post(self, request, pk):
         account = get_object_or_404(MemberAccount, pk=pk)
         account.suspend_account()
-        return redirect('accounts:member_account-actions')  # redirect back to list
 
-class CloseAccountView(LoginRequiredMixin,View):
+        messages.success(
+            request,
+            f"⚠️ Account {account.account_number} suspended."
+        )
+
+        return redirect('accounts:member_account-actions')
+
+
+class DormantAccountView(LoginRequiredMixin, View):
     def post(self, request, pk):
         account = get_object_or_404(MemberAccount, pk=pk)
-        account.close_account()
-        messages.success(request, f"❌ Account {account.account_number} has been closed.")
-        return redirect('accounts:account_detail', pk=pk)
+        account.mark_dormant()
 
-class ActivateAccountView(LoginRequiredMixin,View):
+        messages.success(
+            request,
+            f"😴 Account {account.account_number} marked dormant."
+        )
+
+        return redirect('accounts:member_account-actions')
+
+
+class ActivateAccountView(LoginRequiredMixin, View):
     def post(self, request, pk):
         account = get_object_or_404(MemberAccount, pk=pk)
         account.activate_account()
-        messages.success(request, f"✅ Account {account.account_number} is now active.")
-        return redirect('accounts:account_detail', pk=pk)
 
-class DormantAccountView(LoginRequiredMixin,View):
+        messages.success(
+            request,
+            f"✅ Account {account.account_number} activated."
+        )
+
+        return redirect('accounts:member_account-actions')
+
+
+class CloseAccountView(LoginRequiredMixin, View):
     def post(self, request, pk):
         account = get_object_or_404(MemberAccount, pk=pk)
-        account.dormant_account()
-        messages.success(request, f"😴 Account {account.account_number} is now dormant.")
-        return redirect('accounts:account_detail', pk=pk)
+        account.close_account()
 
+        messages.success(
+            request,
+            f"❌ Account {account.account_number} closed."
+        )
 
+        return redirect('accounts:member_account-actions')
 # List accounts
 class MemberAccountActionView(LoginRequiredMixin,ListView):
     model = MemberAccount
@@ -568,13 +593,7 @@ class MembersProfileUpdateView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Profile updated successfully.")
         return super().form_valid(form)
 
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
-from django.views.generic import CreateView
 
-from .forms import BankChargesAccountForm
-from .models import BankChargesAccount
 
 
 class BankChargesAccountCreateView(CreateView):
