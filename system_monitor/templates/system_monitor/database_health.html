@@ -1,22 +1,102 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Database Health</h2>
 
-<table>
-<tr>
-    <th>Table</th>
-    <th>Size (MB)</th>
-</tr>
+<div class="container mt-4">
 
-{% for table in tables %}
-<tr>
-    <td>{{ table.0 }}</td>
-    <td>{{ table.1 }}</td>
-</tr>
-{% endfor %}
-</table>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-success mb-0">
+            <i class="bi bi-database-check"></i> Database Health
+        </h2>
 
-<p>DB Engine: {{ db_vendor }}</p>
+        <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <!-- Database Summary -->
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Database Engine</h6>
+                    <h4 class="text-success">{{ db_vendor|upper }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Tables</h6>
+                    <h4 class="text-primary">{{ tables|length }}</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tables Card -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-hdd-stack"></i>
+                Database Tables
+            </h5>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-striped align-middle mb-0">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Table Name</th>
+                            <th class="text-end">Size (MB)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for table in tables %}
+                        <tr>
+                            <td>
+                                <strong>{{ table.0 }}</strong>
+                            </td>
+
+                            <td class="text-end">
+                                <span class="badge bg-success">
+                                    {{ table.1 }} MB
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center py-4 text-muted">
+                                <i class="bi bi-database-x fs-4 d-block mb-2"></i>
+                                No database information available.
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="card-footer text-muted small">
+            Database storage statistics and health information.
+        </div>
+
+    </div>
+
+</div>
 
 {% endblock %}
