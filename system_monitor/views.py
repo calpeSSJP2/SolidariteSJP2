@@ -12,7 +12,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
 from .models import SecurityEvent
 from .models import UserDevice
+from django.db import connection
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.db import connection
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.db import connection
 User = get_user_model()
 
 
@@ -62,44 +71,122 @@ class DeviceDashboardView(LoginRequiredMixin, ListView):
 
     paginate_by = 10
 
-class StorageUsageView(LoginRequiredMixin, TemplateView):
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.conf import settings
+from django.db import connection
+import os
 
+import os
+
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import connection
+from django.views.generic import TemplateView
+
+
+class StorageUsageView(LoginRequiredMixin, TemplateView):
     template_name = "system_monitor/storage_usage.html"
 
     def folder_size_mb(self, path):
+        """
+        Return folder size in MB.
+        """
+        if not path or not os.path.exists(path):
+            return 0
+
         total = 0
 
         for root, dirs, files in os.walk(path):
             for file in files:
-                fp = os.path.join(root, file)
+                try:
+                    fp = os.path.join(root, file)
 
-                if os.path.exists(fp):
-                    total += os.path.getsize(fp)
+                    if os.path.isfile(fp):
+                        total += os.path.getsize(fp)
+
+                except (OSError, FileNotFoundError):
+                    pass
 
         return round(total / 1024 / 1024, 2)
+
+    def get_database_size_mb(self):
+        """
+        Return database size in MB.
+        """
+        try:
+            with connection.cursor() as cursor:
+
+                if connection.vendor == "postgresql":
+                    cursor.execute("""
+                        SELECT ROUND(
+                            pg_database_size(current_database())::numeric
+                            / 1024 / 1024,
+                            2
+                        )
+                    """)
+                    result = cursor.fetchone()
+
+                elif connection.vendor == "mysql":
+                    cursor.execute("""
+                        SELECT ROUND(
+                            SUM(data_length + index_length)
+                            / 1024 / 1024,
+                            2
+                        )
+                        FROM information_schema.TABLES
+                        WHERE table_schema = DATABASE()
+                    """)
+                    result = cursor.fetchone()
+
+                else:
+                    return 0
+
+                return float(result[0] or 0)
+
+        except Exception:
+            return 0
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["static_size_mb"] = self.folder_size_mb(
-            settings.STATIC_ROOT
-        ) if os.path.exists(settings.STATIC_ROOT) else 0
+        # Static files
+        static_size = self.folder_size_mb(
+            getattr(settings, "STATIC_ROOT", "")
+        )
+
+        # Media files
+        media_size = self.folder_size_mb(
+            getattr(settings, "MEDIA_ROOT", "")
+        )
+
+        # Project source code size
+        project_size = self.folder_size_mb(settings.BASE_DIR)
+
+        # Database size
+        database_size = self.get_database_size_mb()
+
+        # Total storage
+        total_storage = round(
+            static_size +
+            media_size +
+            database_size,
+            2
+        )
+
+        context.update({
+            "static_size_mb": static_size,
+            "media_size_mb": media_size,
+            "project_size_mb": project_size,
+            "database_size": database_size,
+            "total_storage_mb": total_storage,
+            "db_vendor": connection.vendor.upper(),
+        })
 
         return context
 
-from django.db import connection
 
 
-from django.db import connection
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from django.db import connection
-
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from django.db import connection
 
 
 class DatabaseHealthView(LoginRequiredMixin, TemplateView):

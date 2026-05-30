@@ -4,49 +4,74 @@
 
 <div class="container mt-4">
 
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-success mb-0">
-            <i class="bi bi-database-check"></i> Database Health
+            <i class="bi bi-database-check"></i>
+            Database Health
         </h2>
 
         <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back
+            <i class="bi bi-arrow-left"></i>
+            Back
         </a>
     </div>
 
-    <!-- Database Summary -->
-<div class="row mb-4">
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Database Engine</h6>
-                <h4 class="text-success">{{ db_vendor|upper }}</h4>
+        <!-- Database Engine -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-server fs-1 text-success"></i>
+
+                    <h6 class="text-muted mt-3">
+                        Database Engine
+                    </h6>
+
+                    <h4 class="text-success fw-bold">
+                        {{ db_vendor|upper }}
+                    </h4>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Tables</h6>
-                <h4 class="text-primary">{{ tables|length }}</h4>
+        <!-- Tables Count -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-table fs-1 text-primary"></i>
+
+                    <h6 class="text-muted mt-3">
+                        Total Tables
+                    </h6>
+
+                    <h4 class="text-primary fw-bold">
+                        {{ tables|length }}
+                    </h4>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Database Size</h6>
-                <h4 class="text-danger">
-                    {{ database_size }}
-                </h4>
+        <!-- Database Size -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-hdd-fill fs-1 text-danger"></i>
+
+                    <h6 class="text-muted mt-3">
+                        Database Size
+                    </h6>
+
+                    <h4 class="text-danger fw-bold">
+                        {{ database_size|floatformat:2 }} MB
+                    </h4>
+                </div>
             </div>
         </div>
-    </div>
 
-</div>
+    </div>
 
     <!-- Tables Card -->
     <div class="card shadow-sm border-0">
@@ -54,7 +79,7 @@
         <div class="card-header bg-success text-white">
             <h5 class="mb-0">
                 <i class="bi bi-hdd-stack"></i>
-                Database Tables
+                Database Tables ({{ tables|length }})
             </h5>
         </div>
 
@@ -66,6 +91,7 @@
 
                     <thead class="table-dark">
                         <tr>
+                            <th style="width:80px;">#</th>
                             <th>Table Name</th>
                             <th class="text-end">Size (MB)</th>
                         </tr>
@@ -75,23 +101,35 @@
 
                     {% for table in tables %}
                         <tr>
+
+                            <td>
+                                {{ forloop.counter }}
+                            </td>
+
                             <td>
                                 <strong>{{ table.0 }}</strong>
                             </td>
 
                             <td class="text-end">
-                                <span class="badge bg-success">
-                                    {{ table.1 }}MB
+                                <span class="badge bg-success fs-6">
+                                    {{ table.1|floatformat:2 }} MB
                                 </span>
                             </td>
+
                         </tr>
+
                     {% empty %}
+
                         <tr>
-                            <td colspan="2" class="text-center py-4 text-muted">
-                                <i class="bi bi-database-x fs-4 d-block mb-2"></i>
+                            <td colspan="3" class="text-center py-4 text-muted">
+
+                                <i class="bi bi-database-x fs-1 d-block mb-2"></i>
+
                                 No database information available.
+
                             </td>
                         </tr>
+
                     {% endfor %}
 
                     </tbody>

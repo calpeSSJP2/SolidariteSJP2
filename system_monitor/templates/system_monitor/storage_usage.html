@@ -6,25 +6,31 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-info mb-0">
-            <i class="bi bi-hdd-stack"></i> Storage Usage
+            <i class="bi bi-hdd-stack"></i>
+            Storage Usage
         </h2>
 
         <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back
+            <i class="bi bi-arrow-left"></i>
+            Back
         </a>
     </div>
 
+    <!-- Storage Cards -->
     <div class="row g-4">
 
         <!-- Static Files -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-file-earmark-code fs-1 text-primary"></i>
+
                     <h5 class="mt-3">Static Files</h5>
+
                     <h3 class="fw-bold text-primary">
-                        {{ static_size_mb }} MB
+                        {{ static_size_mb|floatformat:2 }} MB
                     </h3>
+
                     <small class="text-muted">
                         CSS, JavaScript, images and collected static assets.
                     </small>
@@ -33,14 +39,17 @@
         </div>
 
         <!-- Media Files -->
-        <div class="col-md-4">
+        <div class="col-lg-4 col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-images fs-1 text-success"></i>
+
                     <h5 class="mt-3">Media Files</h5>
+
                     <h3 class="fw-bold text-success">
-                        {{ media_size_mb }} MB
+                        {{ media_size_mb|floatformat:2 }} MB
                     </h3>
+
                     <small class="text-muted">
                         User uploads and generated content.
                     </small>
@@ -48,17 +57,58 @@
             </div>
         </div>
 
+        <!-- Database -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-database fs-1 text-warning"></i>
+
+                    <h5 class="mt-3">Database</h5>
+
+                    <h3 class="fw-bold text-warning">
+                        {{ database_size|floatformat:2 }} MB
+                    </h3>
+
+                    <small class="text-muted">
+                        PostgreSQL/MySQL database storage.
+                    </small>
+                </div>
+            </div>
+        </div>
+
         <!-- Project Size -->
-        <div class="col-md-4">
+        <div class="col-lg-6 col-md-6">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <i class="bi bi-folder-fill fs-1 text-danger"></i>
+
                     <h5 class="mt-3">Project Size</h5>
+
                     <h3 class="fw-bold text-danger">
-                        {{ project_size_mb }} MB
+                        {{ project_size_mb|floatformat:2 }} MB
                     </h3>
+
                     <small class="text-muted">
-                        Total disk space used by the project.
+                        Total size of the Django project directory.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Storage -->
+        <div class="col-lg-6 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-pie-chart-fill fs-1 text-dark"></i>
+
+                    <h5 class="mt-3">Total Storage</h5>
+
+                    <h3 class="fw-bold">
+                        {{ total_storage_mb|floatformat:2 }} MB
+                    </h3>
+
+                    <small class="text-muted">
+                        Static + Media + Database storage.
                     </small>
                 </div>
             </div>
@@ -66,8 +116,9 @@
 
     </div>
 
-    <!-- Summary Card -->
+    <!-- Overview -->
     <div class="card shadow-sm border-0 mt-4">
+
         <div class="card-header bg-info text-white">
             <h5 class="mb-0">
                 <i class="bi bi-bar-chart"></i>
@@ -76,11 +127,17 @@
         </div>
 
         <div class="card-body">
-            <p class="mb-0">
-                This report shows the current storage consumption of static assets,
-                uploaded media, and the overall project footprint on the server.
-            </p>
+
+            <ul class="mb-0">
+                <li><strong>Static Files:</strong> Frontend assets collected by Django.</li>
+                <li><strong>Media Files:</strong> User uploads and generated documents.</li>
+                <li><strong>Database:</strong> Data stored in PostgreSQL or MySQL.</li>
+                <li><strong>Project Size:</strong> Source code, templates, migrations, and assets.</li>
+                <li><strong>Total Storage:</strong> Combined storage usage visible to the application.</li>
+            </ul>
+
         </div>
+
     </div>
 
 </div>
