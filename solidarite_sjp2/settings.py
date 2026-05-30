@@ -277,7 +277,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 ###=============================If it is template
 #git add accounts/templates/accounts/member_account_detail.html
 #git commit -m "Add member_account_detail template"
-#git push origin main
+#git push origin master
 ##Get-ChildItem -Recurse -Filter "registration.html"  ##see how to find out a file##
 ##check problrm git log -1
 ####################################### Remove-Item .git\index; git reset

@@ -42,13 +42,9 @@ class SystemMonitorDashboardView(LoginRequiredMixin, TemplateView):
         # Disk Usage
         disk = psutil.disk_usage("/")
 
-        context["disk_used_gb"] = round(
-            disk.used / (1024 ** 3), 2
-        )
+        context["disk_used_gb"] = round(disk.used / (1024 ** 3), 2 )
 
-        context["disk_free_gb"] = round(
-            disk.free / (1024 ** 3), 2
-        )
+        context["disk_free_gb"] = round( disk.free / (1024 ** 3), 2        )
 
         context["disk_percent"] = disk.percent
 
@@ -58,7 +54,7 @@ class DeviceDashboardView(LoginRequiredMixin, ListView):
 
     model = UserDevice
 
-    template_name = "system_monitor/device_dashboard.html"
+    template_name = "system_monitor/devices_dashboard.html"
 
     context_object_name = "devices"
 
