@@ -1479,3 +1479,111 @@ class BankChargesTransactionListView(ListView):
 
         return tx.amount
 
+from django.views import View
+from django.http import HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.utils import timezone
+
+from datetime import datetime, time
+import openpyxl
+
+from .models import BankChargesTransaction
+
+
+class ExportBankChargesExcelView(LoginRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+
+        transactions = BankChargesTransaction.objects.select_related(
+            'performed_by',
+            'from_member_account',
+            'to_member_account',
+            'from_bank_charge_account',
+            'to_bank_charge_account',
+        )
+
+        # Search
+        search = request.GET.get('search')
+        if search:
+            transactions = transactions.filter(
+                Q(reference__icontains=search) |
+                Q(performed_by__username__icontains=search)
+            )
+
+        # Start date
+        start_date = request.GET.get('start_date')
+        if start_date:
+            start_dt = timezone.make_aware(
+                datetime.combine(
+                    datetime.strptime(start_date, "%Y-%m-%d"),
+                    time.min
+                )
+            )
+            transactions = transactions.filter(timestamp__gte=start_dt)
+
+        # End date
+        end_date = request.GET.get('end_date')
+        if end_date:
+            end_dt = timezone.make_aware(
+                datetime.combine(
+                    datetime.strptime(end_date, "%Y-%m-%d"),
+                    time.max
+                )
+            )
+            transactions = transactions.filter(timestamp__lte=end_dt)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Bank Charges"
+
+        headers = [
+            "Date",
+            "Reference",
+            "Transaction Type",
+            "Amount",
+            "From",
+            "To",
+            "Performed By",
+        ]
+        ws.append(headers)
+
+        for tx in transactions.order_by('-timestamp'):
+
+            from_account = (
+                str(tx.from_member_account)
+                if tx.from_member_account
+                else str(tx.from_bank_charge_account)
+                if tx.from_bank_charge_account
+                else ""
+            )
+
+            to_account = (
+                str(tx.to_member_account)
+                if tx.to_member_account
+                else str(tx.to_bank_charge_account)
+                if tx.to_bank_charge_account
+                else ""
+            )
+
+            ws.append([
+                tx.timestamp.strftime("%Y-%m-%d %H:%M"),
+                tx.reference,
+                tx.get_transaction_type_display(),
+                tx.amount,
+                from_account,
+                to_account,
+                str(tx.performed_by) if tx.performed_by else "",
+            ])
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename=bank_charges_transactions.xlsx'
+
+        wb.save(response)
+
+        return response

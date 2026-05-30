@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (LoanWorkflowDetailView,LoanWorkflowDashboardView,MoveLoanStageView,BankChargesTransactionListView,
     LoanDetailView, TopUpLoanCreateView,EmergencyLoanRequestView,LoanOptionsView,  LoanPaymentView, LoanListView,MemberLoanListView,LoanRequestView,
     ApproveLoanView,RejectLoanView,LoanSummaryView, LoanTypeSummaryView, TellerAccountSearchView,PendingLoanView,
-    LoanPaymentSearchView,LoanPaymentListView, LoanActionView)
+    LoanPaymentSearchView,LoanPaymentListView, ExportBankChargesExcelView, LoanActionView)
 from django.views.generic import TemplateView
 app_name = 'transact2_loans'
 urlpatterns = [
@@ -61,4 +61,5 @@ path('transactions_bank/', BankChargesTransactionListView.as_view(), name='txn_b
 path( "workflow/<int:loan_id>/",LoanWorkflowDetailView.as_view(),  name="workflow-detail"),
     path( "workflow/move/<int:workflow_id>/",   MoveLoanStageView.as_view(), name="workflow-move" ),
     path( "workflow/dashboard/", LoanWorkflowDashboardView.as_view(),  name="workflow-dashboard" ),
+path('bank-charges/export/',  ExportBankChargesExcelView.as_view(),  name='export_bank_charges_excel'),
 ]
