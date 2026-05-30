@@ -117,13 +117,12 @@ text {
      viewBox="0 0 360 360"
      xmlns="http://www.w3.org/2000/svg">
 
-    <defs>
-        <path id="circlePath"
-              d="M 180,180
-                 m -120,0
-                 a 120,120 0 1,1 240,0
-                 a 120,120 0 1,1 -240,0" />
-    </defs>
+   <defs>
+    <!-- Top semicircle: West → Top → East -->
+    <path id="topArc"
+          d="M 60,180
+             A 120,120 0 0,1 300,180" />
+</defs>
 
     <circle class="draw-circle"
             cx="180"
@@ -229,12 +228,12 @@ text {
         🤝
     </text>
 
-    <g class="rotating-text">
+    <g>
         <text font-size="16"
               fill="#198754"
               font-weight="600">
 
-            <textPath href="#circlePath"
+            <textPath href="#topArc"
                       startOffset="50%"
                       text-anchor="middle">
 
