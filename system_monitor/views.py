@@ -97,6 +97,11 @@ from django.views.generic import TemplateView
 from django.db import connection
 
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.db import connection
+
+
 class DatabaseHealthView(LoginRequiredMixin, TemplateView):
     template_name = "system_monitor/database_health.html"
 
@@ -109,6 +114,16 @@ class DatabaseHealthView(LoginRequiredMixin, TemplateView):
 
             # PostgreSQL
             if connection.vendor == "postgresql":
+
+                # Total database size
+                cursor.execute("""
+                    SELECT pg_size_pretty(
+                        pg_database_size(current_database())
+                    )
+                """)
+                context["database_size"] = cursor.fetchone()[0]
+
+                # Table sizes
                 cursor.execute("""
                     SELECT
                         relname,
@@ -120,27 +135,40 @@ class DatabaseHealthView(LoginRequiredMixin, TemplateView):
                     FROM pg_catalog.pg_statio_user_tables
                     ORDER BY pg_total_relation_size(relid) DESC
                 """)
-
                 context["tables"] = cursor.fetchall()
 
             # MySQL
             elif connection.vendor == "mysql":
+
+                # Total database size
+                cursor.execute("""
+                    SELECT ROUND(
+                        SUM(data_length + index_length)
+                        / 1024 / 1024,
+                        2
+                    )
+                    FROM information_schema.TABLES
+                    WHERE table_schema = DATABASE()
+                """)
+                context["database_size"] = f"{cursor.fetchone()[0]} MB"
+
+                # Table sizes
                 cursor.execute("""
                     SELECT
                         table_name,
                         ROUND(
-                            (data_length + index_length) / 1024 / 1024,
+                            (data_length + index_length)
+                            / 1024 / 1024,
                             2
                         ) AS size_mb
                     FROM information_schema.TABLES
                     WHERE table_schema = DATABASE()
                     ORDER BY (data_length + index_length) DESC
                 """)
-
                 context["tables"] = cursor.fetchall()
 
-            # Other database engines
             else:
+                context["database_size"] = "N/A"
                 context["tables"] = []
 
         context["table_count"] = len(context["tables"])
