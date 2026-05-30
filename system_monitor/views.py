@@ -10,7 +10,6 @@ from django.conf import settings
 from django.views.generic import TemplateView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import get_user_model
-from audit_logs.models import AuditLog
 from .models import SecurityEvent
 from .models import UserDevice
 
