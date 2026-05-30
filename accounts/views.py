@@ -705,7 +705,15 @@ class DashboardStatsMixin:
                 status_type=MemberAccount.StatusType.DORMANT
             ).count(),
 
-            'active_accounts': MemberAccount.objects.filter(
+            'suspended_accounts': MemberAccount.objects.filter(
+                status_type=MemberAccount.StatusType.SUSPENDED
+            ).count(),
+
+            'closed_accounts': MemberAccount.objects.filter(
+                status_type=MemberAccount.StatusType.CLOSED
+            ).count(),
+
+           'active_accounts': MemberAccount.objects.filter(
                 status_type=MemberAccount.StatusType.ACTIVE
             ).count(),
 
@@ -713,9 +721,7 @@ class DashboardStatsMixin:
              ##
             'peer_loans': PeerToPeerLoan._base_manager.filter(
                 is_fully_paid=False ).count(),
-            'overdue_loans': Loan._base_manager.filter(
-                status=Loan.LoanStatus.ACTIVE,
-                due_date__lt=today  ),
+            #'overdue_loans': ( LoanPayment.objects.filter( due_date__lt=today ).distinct() .count()),
             # Member accounts
             'total_principal': (
                     MemberAccount.objects.aggregate(total=Sum('principal'))['total']
