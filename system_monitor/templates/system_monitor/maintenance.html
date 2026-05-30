@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Maintenance</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Clear Cache</button>
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Clear Sessions</button>
+</form>
+
+{% endblock %}

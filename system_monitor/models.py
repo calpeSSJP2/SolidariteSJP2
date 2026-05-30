@@ -6,30 +6,26 @@ from django.db import models
 from django.conf import settings
 
 class UserDevice(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='devices'
-    )
-
+    user = models.ForeignKey( settings.AUTH_USER_MODEL,   on_delete=models.CASCADE,
+        related_name='devices' )
     device_type = models.CharField(max_length=50, blank=True)
     browser = models.CharField(max_length=100, blank=True)
     operating_system = models.CharField(max_length=100, blank=True)
-
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-
     country = models.CharField(max_length=100, blank=True)
     city = models.CharField(max_length=100, blank=True)
-
     user_agent = models.TextField(blank=True)
-
     login_time = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(auto_now=True)
-
     is_active = models.BooleanField(default=True)
-
     app_version = models.CharField(max_length=50, blank=True)
 
+    class Meta:
+        ordering = ["-last_activity"]
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["last_activity"]),
+            models.Index(fields=["is_active"]), ]
     def __str__(self):
         return f"{self.user.username} - {self.device_type}"
 
@@ -63,8 +59,7 @@ class DeviceTrackingMiddleware:
             elif user_agent.is_tablet:
                 device_type = "Tablet"
 
-            UserDevice.objects.create(
-                user=request.user,
+            UserDevice.objects.create( user=request.user,
                 device_type=device_type,
                 browser=user_agent.browser.family,
                 operating_system=user_agent.os.family,
@@ -86,3 +81,40 @@ class DeviceTrackingMiddleware:
 
         return ip
 
+class SecurityEvent(models.Model):
+
+    EVENT_TYPES = [
+        ("LOGIN_FAILED", "Login Failed"),
+        ("LOGIN_SUCCESS", "Login Success"),
+        ("PASSWORD_RESET", "Password Reset"),
+        ("PERMISSION_DENIED", "Permission Denied"),
+        ("ACCOUNT_LOCKED", "Account Locked"),
+    ]
+
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    event_type = models.CharField(   max_length=50,   choices=EVENT_TYPES   )
+
+    user = models.ForeignKey( settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,  null=True,
+        blank=True  )
+
+    ip_address = models.GenericIPAddressField( null=True, blank=True  )
+
+    details = models.TextField(blank=True)
+
+class BackupRecord(models.Model):
+
+    backup_date = models.DateTimeField()
+
+    backup_size_mb = models.DecimalField( max_digits=10, decimal_places=2  )
+
+    backup_file = models.CharField( max_length=255, blank=True )
+
+    status = models.CharField(max_length=20, choices=[
+            ("SUCCESS", "Success"),
+            ("FAILED", "Failed")     ]  )
+
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-backup_date"]

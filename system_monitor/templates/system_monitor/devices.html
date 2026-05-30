@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Devices</h2>
+
+<table>
+<tr>
+    <th>User</th>
+    <th>Device</th>
+    <th>Browser</th>
+    <th>OS</th>
+    <th>IP</th>
+    <th>Last Activity</th>
+</tr>
+
+{% for d in devices %}
+<tr>
+    <td>{{ d.user.username }}</td>
+    <td>{{ d.device_type }}</td>
+    <td>{{ d.browser }}</td>
+    <td>{{ d.operating_system }}</td>
+    <td>{{ d.ip_address }}</td>
+    <td>{{ d.last_activity }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

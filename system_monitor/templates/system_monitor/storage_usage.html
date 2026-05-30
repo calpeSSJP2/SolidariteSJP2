@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Storage Usage</h2>
+
+<p>Static Files: {{ static_size_mb }} MB</p>
+<p>Media Files: {{ media_size_mb }}</p>
+<p>Project Size: {{ project_size_mb }}</p>
+
+{% endblock %}

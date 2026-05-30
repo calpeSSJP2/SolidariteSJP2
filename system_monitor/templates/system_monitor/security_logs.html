@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Security Logs</h2>
+
+<ul>
+{% for e in events %}
+    <li>
+        {{ e.timestamp }} - {{ e.event_type }} - {{ e.ip_address }}
+    </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

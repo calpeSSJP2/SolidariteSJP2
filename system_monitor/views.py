@@ -1,32 +1,160 @@
-from django.shortcuts import render
+
 
 # system_monitor/views.py
-from django.views.generic import ListView
+
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+import os
+import psutil
+from django.conf import settings
+from django.views.generic import TemplateView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import get_user_model
+from audit_logs.models import AuditLog
+from .models import SecurityEvent
 from .models import UserDevice
-from django.shortcuts import render
-from .models import UserDevice
-from django.contrib.admin.views.decorators import staff_member_required
 
-@staff_member_required
-def device_dashboard(request):
-
-    devices = UserDevice.objects.select_related('user').order_by('-last_activity')
-
-    return render(
-        request,
-        'system_monitor/device_dashboard.html',
-        {'devices': devices}
-    )
+User = get_user_model()
 
 
+class SystemMonitorDashboardView(LoginRequiredMixin, TemplateView):
+    """
+    Main System Monitor Dashboard
+    """
+
+    template_name = "system_monitor/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Users
+        context["total_users"] = User.objects.count()
+
+        # Devices
+        context["total_devices"] = UserDevice.objects.count()
+
+        # System Performance
+        memory = psutil.virtual_memory()
+
+        context["ram_used_mb"] = round(memory.used / 1024 / 1024, 2)
+        context["ram_percent"] = memory.percent
+        context["cpu_percent"] = psutil.cpu_percent(interval=1)
+
+        # Disk Usage
+        disk = psutil.disk_usage("/")
+
+        context["disk_used_gb"] = round(
+            disk.used / (1024 ** 3), 2
+        )
+
+        context["disk_free_gb"] = round(
+            disk.free / (1024 ** 3), 2
+        )
+
+        context["disk_percent"] = disk.percent
+
+        return context
 
 class DeviceDashboardView(LoginRequiredMixin, ListView):
 
     model = UserDevice
 
-    template_name = 'system_monitor/device_dashboard.html'
+    template_name = "system_monitor/device_dashboard.html"
 
-    context_object_name = 'devices'
+    context_object_name = "devices"
 
-    ordering = ['-last_activity']
+    ordering = ["-last_activity"]
+
+    paginate_by = 10
+
+class StorageUsageView(LoginRequiredMixin, TemplateView):
+
+    template_name = "system_monitor/storage_usage.html"
+
+    def folder_size_mb(self, path):
+        total = 0
+
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                fp = os.path.join(root, file)
+
+                if os.path.exists(fp):
+                    total += os.path.getsize(fp)
+
+        return round(total / 1024 / 1024, 2)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["static_size_mb"] = self.folder_size_mb(
+            settings.STATIC_ROOT
+        ) if os.path.exists(settings.STATIC_ROOT) else 0
+
+        return context
+
+from django.db import connection
+
+
+class DatabaseHealthView(LoginRequiredMixin, TemplateView):
+
+    template_name = "system_monitor/database_health.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        with connection.cursor() as cursor:
+
+            cursor.execute("""
+                SELECT table_name,
+                       ROUND(((data_length + index_length) / 1024 / 1024),2)
+                FROM information_schema.TABLES
+                WHERE table_schema = DATABASE()
+            """)
+
+            context["tables"] = cursor.fetchall()
+            context["db_vendor"] = connection.vendor
+
+        return context
+
+
+
+class OnlineUsersView(LoginRequiredMixin, TemplateView):
+    template_name = "system_monitor/online_users.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sessions = Session.objects.filter( expire_date__gte=timezone.now())
+        context["online_count"] = sessions.count()
+        return context
+
+class SecurityLogView(LoginRequiredMixin, ListView):
+
+    model = SecurityEvent
+
+    context_object_name = "events"
+
+    ordering = ["-timestamp"]
+
+    paginate_by = 10
+
+
+class PerformanceView(LoginRequiredMixin, TemplateView):
+
+    template_name = "system_monitor/performance.html"
+
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        memory = psutil.virtual_memory()
+
+        context["ram"] = memory.percent
+
+        context["cpu"] = psutil.cpu_percent(1)
+
+        return context
+
+class MaintenanceView(LoginRequiredMixin, TemplateView):
+
+    template_name = "system_monitor/maintenance.html"
+
+

@@ -1,11 +1,16 @@
 # system_monitor/middleware.py
 
-from .models import UserDevice
-from user_agents import parse
 from django.utils.timezone import now
+from user_agents import parse
+
+from .models import UserDevice
 
 
 class DeviceTrackingMiddleware:
+    """
+    Tracks authenticated user devices and updates
+    their latest activity.
+    """
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -18,51 +23,62 @@ class DeviceTrackingMiddleware:
 
             ip = self.get_client_ip(request)
 
-            user_agent_string = request.META.get('HTTP_USER_AGENT', '')
-            user_agent = parse(user_agent_string)
+            user_agent_string = request.META.get(
+                "HTTP_USER_AGENT",
+                ""
+            )
 
-            device_type = "Desktop"
+            ua = parse(user_agent_string)
 
-            if user_agent.is_mobile:
+            # Device type detection
+            if ua.is_mobile:
                 device_type = "Mobile"
-
-            elif user_agent.is_tablet:
+            elif ua.is_tablet:
                 device_type = "Tablet"
+            else:
+                device_type = "Desktop"
 
-            # Update existing device OR create new one
+            # FIX: use correct variable (ua)
             device, created = UserDevice.objects.get_or_create(
                 user=request.user,
-                user_agent=user_agent_string,
+                device_type=device_type,
+                browser=ua.browser.family,
+                operating_system=ua.os.family,
                 defaults={
-                    'device_type': device_type,
-                    'browser': user_agent.browser.family,
-                    'operating_system': user_agent.os.family,
-                    'ip_address': ip,
-                    'last_activity': now(),
-                    'is_active': True,
+                    "ip_address": ip,
+                    "user_agent": user_agent_string,
+                    "is_active": True,
                 }
             )
 
-            # Update activity if device already exists
-            if not created:
-                device.last_activity = now()
-                device.ip_address = ip
-                device.is_active = True
-                device.save(update_fields=[
-                    'last_activity',
-                    'ip_address',
-                    'is_active'
-                ])
+            # Always update latest activity
+            device.last_activity = now()
+            device.ip_address = ip
+            device.user_agent = user_agent_string
+            device.is_active = True
+
+            device.save(
+                update_fields=[
+                    "last_activity",
+                    "ip_address",
+                    "user_agent",
+                    "is_active"
+                ]
+            )
 
         return response
 
-    def get_client_ip(self, request):
+    @staticmethod
+    def get_client_ip(request):
+        """
+        Get real client IP (supports proxies).
+        """
 
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        x_forwarded_for = request.META.get(
+            "HTTP_X_FORWARDED_FOR"
+        )
 
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
+            return x_forwarded_for.split(",")[0].strip()
 
-        return ip
+        return request.META.get("REMOTE_ADDR")

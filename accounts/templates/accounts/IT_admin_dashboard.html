@@ -86,13 +86,68 @@
 
         <a href="{% url 'accounts:password_reset' %}" class="nav-link px-3"> 9. Change Password </a>
          <a href="{% url 'accounts:user_list' %}" class="nav-link px-3">10. 👁️ View Username </a>
-          <a href="" class="nav-link px-3">11. System Info </a>
+
 
 
       </div>
     </div>
   </div>
 
+    <!-- SYSTEM MONITOR -->
+<div class="accordion-item border-0">
+  <h2 class="accordion-header" id="headingSystemMonitor">
+    <button class="accordion-button collapsed bg-danger text-white"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseSystemMonitor"
+            aria-expanded="false"
+            aria-controls="collapseSystemMonitor">
+      🖥️ System Monitor
+    </button>
+  </h2>
+
+  <div id="collapseSystemMonitor"
+       class="accordion-collapse collapse"
+       aria-labelledby="headingSystemMonitor"
+       data-bs-parent="#sidebarAccordion">
+
+    <div class="accordion-body py-2 px-3">
+
+      <a href="{% url 'system_monitor:dashboard' %}" class="nav-link px-3">
+        📊 System Dashboard
+      </a>
+
+      <a href="{% url 'system_monitor:devices' %}" class="nav-link px-3">
+        📱 Devices
+      </a>
+
+      <a href="{% url 'system_monitor:online_users' %}" class="nav-link px-3">
+        🟢 Online Users
+      </a>
+
+      <a href="{% url 'system_monitor:storage' %}" class="nav-link px-3">
+        💾 Storage Usage
+      </a>
+
+      <a href="{% url 'system_monitor:database' %}" class="nav-link px-3">
+        🗄️ Database Health
+      </a>
+
+      <a href="{% url 'system_monitor:security_logs' %}" class="nav-link px-3">
+        🔐 Security Logs
+      </a>
+
+      <a href="{% url 'system_monitor:performance' %}" class="nav-link px-3">
+        ⚡ Performance
+      </a>
+
+      <a href="{% url 'system_monitor:maintenance' %}" class="nav-link px-3">
+        🛠 Maintenance
+      </a>
+
+    </div>
+  </div>
+</div>
   <!-- Regular Operations -->
   <div class="accordion-item border-0">
     <h2 class="accordion-header" id="headingOps">

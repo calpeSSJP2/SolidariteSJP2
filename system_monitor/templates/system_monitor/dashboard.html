@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>System Monitor Dashboard</h2>
+
+<ul>
+    <li>Total Users: {{ total_users }}</li>
+    <li>Total Devices: {{ total_devices }}</li>
+    <li>RAM: {{ ram_percent }}%</li>
+    <li>CPU: {{ cpu_percent }}%</li>
+    <li>Disk Used: {{ disk_used_gb }} GB</li>
+    <li>Disk Free: {{ disk_free_gb }} GB</li>
+</ul>
+
+<a href="{% url 'system_monitor:devices' %}">Devices</a>
+{% endblock %}

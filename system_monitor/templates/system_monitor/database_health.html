@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Database Health</h2>
+
+<table>
+<tr>
+    <th>Table</th>
+    <th>Size (MB)</th>
+</tr>
+
+{% for table in tables %}
+<tr>
+    <td>{{ table.0 }}</td>
+    <td>{{ table.1 }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<p>DB Engine: {{ db_vendor }}</p>
+
+{% endblock %}
