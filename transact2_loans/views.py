@@ -13,7 +13,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from decimal import Decimal
 
+from django.views.generic import ListView
+
+from .models import BankChargesTransaction
+
+
+from django.db.models import Q
+from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView, DetailView, CreateView, ListView, FormView)
@@ -1277,114 +1285,6 @@ class LoanPaymentView(FormView):
 # =====================================================
 # CUSTOMER + STAFF TRACKING VIEW
 
-
-
-class BankChargesTransactionListView(ListView):
-    model = BankChargesTransaction
-    template_name = 'transact1_regular_deposit/bank_charges_transaction_list.html'
-    context_object_name = 'processed_transactions'
-    paginate_by = 10
-
-    def get_queryset(self):
-        return BankChargesTransaction.objects.select_related(
-            'from_member_account',
-            'to_member_account',
-            'from_bank_charge_account',
-            'to_bank_charge_account',
-            'performed_by',
-        ).order_by('-timestamp', '-id')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        all_transactions = self.get_queryset()
-
-        page_obj = context['page_obj']
-        paginated_transactions = page_obj.object_list
-
-        running_balance = Decimal('0.00')
-
-        # -----------------------------------
-        # Calculate opening balance
-        # before current page
-        # -----------------------------------
-        if page_obj.start_index() > 1:
-            previous_transactions = all_transactions[
-                :page_obj.start_index() - 1
-            ]
-
-            for tx in previous_transactions:
-                running_balance += self._get_signed_amount(tx)
-
-        processed = []
-
-        # -----------------------------------
-        # Current page transactions
-        # -----------------------------------
-        for tx in paginated_transactions:
-
-            debit = Decimal('0.00')
-            credit = Decimal('0.00')
-
-            # -----------------------------------
-            # Deposit:
-            # Member pays bank charges
-            # Money enters bank charge account
-            # -----------------------------------
-            if tx.transaction_type == (
-                BankChargesTransaction.TransactionType.DEPOSIT
-            ):
-                credit = tx.amount
-                running_balance += credit
-
-            # -----------------------------------
-            # Withdrawal:
-            # Bank charge account pays member
-            # Money leaves bank charge account
-            # -----------------------------------
-            elif tx.transaction_type == (
-                BankChargesTransaction.TransactionType.WITHDRAWAL
-            ):
-                debit = tx.amount
-                running_balance -= debit
-
-            processed.append({
-                'transaction': tx,
-                'debit': debit,
-                'credit': credit,
-                'balance': running_balance,
-            })
-
-        context['processed_transactions'] = processed
-
-        context['total_amount'] = sum(
-            self._get_signed_amount(tx)
-            for tx in all_transactions
-        )
-
-        return context
-
-    def _get_signed_amount(self, tx):
-
-        # -----------------------------------
-        # Deposit increases bank charge balance
-        # -----------------------------------
-        if tx.transaction_type == (
-            BankChargesTransaction.TransactionType.DEPOSIT
-        ):
-            return tx.amount
-
-        # -----------------------------------
-        # Withdrawal decreases bank charge balance
-        # -----------------------------------
-        elif tx.transaction_type == (
-            BankChargesTransaction.TransactionType.WITHDRAWAL
-        ):
-            return -tx.amount
-
-        return Decimal('0.00')
-
-
 class LoanWorkflowDetailView(LoginRequiredMixin, TemplateView):
 
     template_name = "transact2_loans/workflow_detail.html"
@@ -1455,14 +1355,15 @@ class MoveLoanStageView(LoginRequiredMixin, FormView):
             )
 
         return super().dispatch(request, *args, **kwargs)
+
+
+
 from decimal import Decimal
 
+from django.db.models import Q
 from django.views.generic import ListView
 
 from .models import BankChargesTransaction
-
-from django.db.models import Q
-from datetime import datetime
 
 
 class BankChargesTransactionListView(ListView):
@@ -1472,16 +1373,16 @@ class BankChargesTransactionListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
+        queryset = (
+            BankChargesTransaction.objects
+            .select_related(
+                'from_member_account',
+                'to_member_account',
+                'from_bank_charge_account',
+                'to_bank_charge_account',
+                'performed_by',  ) )
 
-        queryset = BankChargesTransaction.objects.select_related(
-            'from_member_account',
-            'to_member_account',
-            'from_bank_charge_account',
-            'to_bank_charge_account',
-            'performed_by',
-        )
-
-        # SEARCH
+        # Search
         search = self.request.GET.get('search')
 
         if search:
@@ -1489,10 +1390,9 @@ class BankChargesTransactionListView(ListView):
                 Q(reference__icontains=search) |
                 Q(from_member_account__account_number__icontains=search) |
                 Q(to_member_account__account_number__icontains=search) |
-                Q(performed_by__username__icontains=search)
-            )
+                Q(performed_by__username__icontains=search) )
 
-        # START DATE
+        # Start date
         start_date = self.request.GET.get('start_date')
 
         if start_date:
@@ -1500,7 +1400,7 @@ class BankChargesTransactionListView(ListView):
                 timestamp__date__gte=start_date
             )
 
-        # END DATE
+        # End date
         end_date = self.request.GET.get('end_date')
 
         if end_date:
@@ -1511,11 +1411,71 @@ class BankChargesTransactionListView(ListView):
         return queryset.order_by('-timestamp', '-id')
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
+
+        all_transactions = self.get_queryset()
+
+        page_obj = context['page_obj']
+        paginated_transactions = page_obj.object_list
+
+        running_balance = Decimal('0.00')
+
+        # Calculate opening balance from previous pages
+        if page_obj.start_index() > 1:
+            previous_transactions = all_transactions[
+                :page_obj.start_index() - 1
+            ]
+
+            for tx in previous_transactions:
+                running_balance += self._get_signed_amount(tx)
+
+        processed = []
+
+        for tx in paginated_transactions:
+            debit = Decimal('0.00')
+            credit = Decimal('0.00')
+
+            if tx.transaction_type == (
+                BankChargesTransaction.TransactionType.DEPOSIT
+            ):
+                credit = tx.amount
+                running_balance += credit
+
+            elif tx.transaction_type == (
+                BankChargesTransaction.TransactionType.WITHDRAWAL
+            ):
+                debit = tx.amount
+                running_balance -= debit
+
+            processed.append({
+                'transaction': tx,
+                'debit': debit,
+                'credit': credit,
+                'balance': running_balance,
+            })
+
+        context['processed_transactions'] = processed
 
         context['search'] = self.request.GET.get('search', '')
         context['start_date'] = self.request.GET.get('start_date', '')
         context['end_date'] = self.request.GET.get('end_date', '')
 
+        context['total_amount'] = sum(
+            (
+                self._get_signed_amount(tx)
+                for tx in all_transactions
+            ),
+            Decimal('0.00')
+        )
+
         return context
+
+    def _get_signed_amount(self, tx):
+        if (
+            tx.transaction_type
+            == BankChargesTransaction.TransactionType.WITHDRAWAL
+        ):
+            return -tx.amount
+
+        return tx.amount
+

@@ -283,6 +283,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 ####################################### Remove-Item .git\index; git reset
 ##error: bad signature 0x00000000
 ##fatal: index file corrupt
+
 #############################################
 ##fatal: cannot lock ref 'HEAD': unable to resolve reference 'refs/heads/master': reference broken
 ###################################################################
