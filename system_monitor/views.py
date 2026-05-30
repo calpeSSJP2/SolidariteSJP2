@@ -92,43 +92,58 @@ from django.db import connection
 
 from django.db import connection
 
-class DatabaseHealthView(LoginRequiredMixin, TemplateView):
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from django.db import connection
 
+
+class DatabaseHealthView(LoginRequiredMixin, TemplateView):
     template_name = "system_monitor/database_health.html"
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
 
         context["db_vendor"] = connection.vendor
 
         with connection.cursor() as cursor:
 
+            # PostgreSQL
             if connection.vendor == "postgresql":
-
                 cursor.execute("""
                     SELECT
                         relname,
-                        pg_total_relation_size(relid)
+                        ROUND(
+                            pg_total_relation_size(relid)::numeric
+                            / 1024 / 1024,
+                            2
+                        ) AS size_mb
                     FROM pg_catalog.pg_statio_user_tables
                     ORDER BY pg_total_relation_size(relid) DESC
                 """)
 
                 context["tables"] = cursor.fetchall()
 
+            # MySQL
             elif connection.vendor == "mysql":
-
                 cursor.execute("""
-                    SELECT table_name,
-                           ROUND(((data_length + index_length)/1024/1024),2)
+                    SELECT
+                        table_name,
+                        ROUND(
+                            (data_length + index_length) / 1024 / 1024,
+                            2
+                        ) AS size_mb
                     FROM information_schema.TABLES
                     WHERE table_schema = DATABASE()
+                    ORDER BY (data_length + index_length) DESC
                 """)
 
                 context["tables"] = cursor.fetchall()
 
+            # Other database engines
             else:
                 context["tables"] = []
+
+        context["table_count"] = len(context["tables"])
 
         return context
 
