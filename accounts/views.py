@@ -639,8 +639,7 @@ class DashboardStatsMixin:
         # ----------------------------
         # ✅ PEER LOANS REMAINING
         # ----------------------------
-        peer_remaining = (
-            PeerToPeerLoan._base_manager
+        peer_remaining = (  PeerToPeerLoan._base_manager
             .filter(is_fully_paid=False)
             .annotate(
                 total_paid=Coalesce(Sum('repayments__amount'), Decimal('0.00'))
@@ -692,7 +691,12 @@ class DashboardStatsMixin:
             ).count(),
 
             'total_accounts': MemberAccount.objects.count(),
-
+             ##
+            'peer_loans': PeerToPeerLoan._base_manager.filter(
+                is_fully_paid=False ).count(),
+            'overdue_loans': Loan._base_manager.filter(
+                status=Loan.LoanStatus.ACTIVE,
+                due_date__lt=today  ),
             # Member accounts
             'total_principal': (
                     MemberAccount.objects.aggregate(total=Sum('principal'))['total']
