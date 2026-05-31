@@ -1294,11 +1294,21 @@ class LoanPaymentPlanView(LoginRequiredMixin, DetailView):
     template_name = "transact2_loans/loan_payment_plan.html"
     context_object_name = "loan"
     pk_url_kwarg = "loan_id"
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Staff roles can view any loan
+        if user.has_any_role("manager", "officer", "auditor", "itadmin"):
+            return Loan.objects.all()
+
+        # Members can only view their own loans
+        return Loan.objects.filter(
+            account=user.account  )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["schedule"] = self.object.payment_schedule
-
         return context
 
 # CUSTOMER + STAFF TRACKING VIEW

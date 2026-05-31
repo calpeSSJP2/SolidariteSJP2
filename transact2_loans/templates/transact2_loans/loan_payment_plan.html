@@ -1,107 +1,129 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-<div class="card shadow-sm border-0 mt-4">
+{% block content %}
 
-    <div class="card-header bg-primary text-white">
-        <h3 class="mb-0">📅 Loan Payment Plan</h3>
-    </div>
+<div class="container mt-4">
 
-    <div class="card-body">
+    <div class="card shadow-sm border-0">
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="alert alert-secondary mb-0">
-                    <strong>Loan ID:</strong> #{{ loan.id }}
-                </div>
-            </div>
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <h3 class="mb-0">📅 Loan Payment Plan</h3>
 
-            <div class="col-md-4">
-                <div class="alert alert-info mb-0">
-                    <strong>Requested Amount:</strong><br>
-                    {{ loan.amount|floatformat:2|intcomma }} RWF
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="alert alert-success mb-0">
-                    <strong>Total Payable:</strong><br>
-                    {{ loan.total_payable|floatformat:2|intcomma }} RWF
-                </div>
-            </div>
+            <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"
+               class="btn btn-light btn-sm">
+                ← Back to Loan
+            </a>
         </div>
 
-        <div class="table-responsive">
+        <div class="card-body">
 
-            <table class="table table-hover table-striped table-bordered align-middle">
+            <div class="row mb-4">
 
-                <thead class="table-dark">
-                    <tr>
-                        <th># Month</th>
-                        <th>Due Date</th>
-                        <th>Amount Due</th>
-                        <th>Amount Paid</th>
-                        <th>Balance</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+                <div class="col-md-3">
+                    <div class="alert alert-secondary mb-0">
+                        <strong>Loan ID:</strong><br>
+                        #{{ loan.id }}
+                    </div>
+                </div>
 
-                <tbody>
+                <div class="col-md-3">
+                    <div class="alert alert-info mb-0">
+                        <strong>Requested Amount:</strong><br>
+                        {{ loan.amount|floatformat:2|intcomma }} RWF
+                    </div>
+                </div>
 
-                {% for row in schedule %}
-                    <tr>
+                <div class="col-md-3">
+                    <div class="alert alert-success mb-0">
+                        <strong>Total Payable:</strong><br>
+                        {{ loan.total_payable|floatformat:2|intcomma }} RWF
+                    </div>
+                </div>
 
-                        <td>
-                            <span class="badge bg-primary">
-                                {{ row.month }}
-                            </span>
-                        </td>
+                <div class="col-md-3">
+                    <div class="alert alert-warning mb-0">
+                        <strong>Status:</strong><br>
+                        {{ loan.get_status_display }}
+                    </div>
+                </div>
 
-                        <td>
-                            {{ row.due_date|date:"d M Y" }}
-                        </td>
+            </div>
 
-                        <td>
-                            {{ row.amount_due|floatformat:2|intcomma }} RWF
-                        </td>
+            <div class="table-responsive">
 
-                        <td>
-                            {{ row.amount_paid|floatformat:2|intcomma }} RWF
-                        </td>
+                <table class="table table-hover table-striped table-bordered align-middle">
 
-                        <td>
-                            {{ row.balance|floatformat:2|intcomma }} RWF
-                        </td>
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Due Date</th>
+                            <th>Amount Due</th>
+                            <th>Amount Paid</th>
+                            <th>Remaining Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
 
-                        <td>
-                            {% if row.is_paid %}
-                                <span class="badge bg-success">
-                                    ✓ Paid
+                    <tbody>
+
+                    {% for row in schedule %}
+                        <tr>
+
+                            <td>
+                                <span class="badge bg-primary">
+                                    Month {{ row.month }}
                                 </span>
-                            {% else %}
-                                <span class="badge bg-danger">
-                                    ✗ Pending
-                                </span>
-                            {% endif %}
-                        </td>
+                            </td>
 
-                    </tr>
-                {% empty %}
+                            <td>{{ row.due_date|date:"d M Y" }}</td>
 
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">
-                            No payment schedule available.
-                        </td>
-                    </tr>
+                            <td>
+                                {{ row.amount_due|floatformat:2|intcomma }} RWF
+                            </td>
 
-                {% endfor %}
+                            <td>
+                                {{ row.amount_paid|floatformat:2|intcomma }} RWF
+                            </td>
 
-                </tbody>
+                            <td>
+                                {{ row.balance|floatformat:2|intcomma }} RWF
+                            </td>
 
-            </table>
+                            <td>
+                                {% if row.is_paid %}
+                                    <span class="badge bg-success">
+                                        ✓ Paid
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        ✗ Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No installment schedule available.
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+{% endblock %}
