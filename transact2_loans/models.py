@@ -8,7 +8,8 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from accounts.mixins import ActiveAccountMixin
-
+from decimal import Decimal
+from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -497,9 +498,40 @@ class Loan(ActiveAccountMixin, models.Model):
             self.refresh_status()  # existing method will update status to ACTIVE/PAID
             return topup_loan
 
+
+
     def amount_remaining(self):
         # ❌ Improvement: quantize result for template consistency
         return max(self.total_payable - self.total_paid, Decimal('0.00')).quantize(Decimal("0.01"))
+
+    @property
+    def payment_schedule(self):
+        schedule = []
+
+        monthly_due = self.monthly_payment
+        total_paid = self.total_paid
+
+        remaining_paid = total_paid
+        running_balance = self.total_payable
+
+        for month in range(1, self.term_months + 1):
+            due_date = self.issued_on + relativedelta(months=month)
+
+            paid_for_this_month = min(monthly_due, remaining_paid)
+
+            remaining_paid -= paid_for_this_month
+            running_balance -= paid_for_this_month
+
+            schedule.append({
+                "month": month,
+                "due_date": due_date,
+                "amount_due": monthly_due,
+                "amount_paid": paid_for_this_month,
+                "balance": max(running_balance, Decimal("0.00")),
+                "is_paid": paid_for_this_month >= monthly_due,
+            })
+
+        return schedule
 
     # -----------------------------
     # Save

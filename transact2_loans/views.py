@@ -1,11 +1,13 @@
-from decimal import Decimal
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
-from decimal import Decimal
-
+from django.views import View
+from django.http import HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.views.generic import ListView
+from django.utils import timezone
+
+from datetime import datetime, time
+import openpyxl
 
 from .models import BankChargesTransaction
 
@@ -17,17 +19,9 @@ from django.db.models import Sum, Count, Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from decimal import Decimal
 
-from django.views.generic import ListView
-
-from .models import BankChargesTransaction
-
-
-from django.db.models import Q
-from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView, DetailView, CreateView, ListView, FormView)
@@ -37,15 +31,13 @@ from django.views.generic import TemplateView, View
 
 from django.contrib import messages
 
-from .models import Loan, LoanWorkflow, BankChargesTransaction
-
 from accounts.models import SJP2_Account, MemberAccount,BankChargesAccount
 from ledger.models import AccountStatement,BankChargeStatement
 from ledger.services import LedgerService
 from transact1_regular_deposit.models import SJP2Transaction
 from transact3_lending.models import PeerToPeerLoan, PeerLoanRepayment
 
-from .models import Loan, LoanPayment,BankChargesTransaction
+from .models import Loan, LoanPayment,BankChargesTransaction,LoanWorkflow
 from .forms import ( LoanRequestForm, LoanPaymentForm,  TopUpLoanForm,   AccountLookupForm,
     EmergencyLoanRequestForm,)
 from .services import LoanLimitService
@@ -1295,6 +1287,20 @@ class LoanPaymentView(FormView):
 
         return redirect(self.success_url)
 # =====================================================
+
+
+class LoanPaymentPlanView(LoginRequiredMixin, DetailView):
+    model = Loan
+    template_name = "transact2_loans/loan_payment_plan.html"
+    context_object_name = "loan"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["schedule"] = self.object.payment_schedule
+
+        return context
+
 # CUSTOMER + STAFF TRACKING VIEW
 
 class LoanWorkflowDetailView(LoginRequiredMixin, TemplateView):
@@ -1484,16 +1490,6 @@ class BankChargesTransactionListView(ListView):
 
         return tx.amount
 
-from django.views import View
-from django.http import HttpResponse
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
-from django.utils import timezone
-
-from datetime import datetime, time
-import openpyxl
-
-from .models import BankChargesTransaction
 
 
 class ExportBankChargesExcelView(LoginRequiredMixin, View):
@@ -1588,6 +1584,45 @@ class ExportBankChargesExcelView(LoginRequiredMixin, View):
         response[
             'Content-Disposition'
         ] = 'attachment; filename=bank_charges_transactions.xlsx'
+
+        wb.save(response)
+
+        return response
+from openpyxl import Workbook
+from django.http import HttpResponse
+
+class LoanPaymentPlanExcelView(LoginRequiredMixin, View):
+
+    def get(self, request, loan_id):
+
+        loan = get_object_or_404(Loan, pk=loan_id)
+
+        wb = Workbook()
+        ws = wb.active
+
+        ws.append([
+            "Month",
+            "Due Date",
+            "Amount Due",
+            "Amount Paid",
+            "Balance",
+            "Paid"
+        ])
+
+        for row in loan.payment_schedule:
+            ws.append([
+                row["month"],
+                str(row["due_date"]),
+                float(row["amount_due"]),
+                float(row["amount_paid"]),
+                float(row["balance"]),
+                "Yes" if row["is_paid"] else "No",      ])
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"     )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="loan_{loan.id}_schedule.xlsx"'  )
 
         wb.save(response)
 

@@ -48,10 +48,11 @@
         </h2>
         <div id="collapseLoan" class="accordion-collapse collapse" aria-labelledby="headingReports" data-bs-parent="#sidebarAccordion">
             <div class="accordion-body py-2 px-3">
-               <a href="{% url 'transact4_share_mngt:share_trans_report' %}" class="nav-link px-3">🤝 shares statement </a>
                    {% for loan in loans %}
-                <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"
-              class="nav-link px-3">   🔎 Track Loan #{{ loan.id }}</a>
+                <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"  class="nav-link px-3">   🔎 Track Loan #{{ loan.id }}</a>
+                <a href="{% url 'transact2_loans:loan_payment_plan' loan.id %}"   class="nav-link px-5 text-success">
+   📅 Installment Plan </a>
+
               {% empty %}
 
 <p class="px-3 text-muted">
