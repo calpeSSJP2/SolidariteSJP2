@@ -2,8 +2,11 @@
 
 {% block content %}
 
-<h4>Loan Workflow Tracking</h4>
-
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Loan Workflow Tracking</h2>
+ <!--If it is  a property use it as sttributes, dont put (), unless if it is a method   -->
+    <a href="{{ request.user.dashboard_url }}" class="btn btn-secondary">  ← Back to dashboard </a>
+  </div>
 <hr>
 
 <h6>Loan Information</h6>
