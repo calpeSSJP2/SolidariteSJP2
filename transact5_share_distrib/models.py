@@ -9,7 +9,7 @@ from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from accounts.models import MemberAccount
 from django.db.models import Q
-
+from accounts.mixins import ActiveAccountMixin
 
 User = settings.AUTH_USER_MODEL
 
@@ -46,10 +46,10 @@ class YearlyInterestPool(models.Model):
         return f"Interest Pool {self.year}"
 ##Mmemeber distribution reccords
 
-class MemberInterestShare(models.Model):
+class MemberInterestShare(ActiveAccountMixin, models.Model):
+    ACCOUNT_FIELDS = ["account", ]
     """
-    Stores how much each member received.
-    This is your permanent audit record.
+    Stores how much each member received.This is your permanent audit record.
     """
 
     pool = models.ForeignKey( YearlyInterestPool, on_delete=models.CASCADE,  related_name="shares"  )
@@ -73,3 +73,16 @@ class MemberInterestShare(models.Model):
 
     def __str__(self):
         return f"{self.account.account_number} → {self.interest_earned}"
+
+    def clean(self):
+        """
+        Validation for date logic:
+        - Allow early payments (paid_on before due_date) → no penalty.
+        - Late payments → calculate delay in months (partial months rounded up).
+        """
+        super().clean()
+        self.check_active_accounts()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)

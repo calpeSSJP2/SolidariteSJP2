@@ -244,6 +244,7 @@ class Loan(ActiveAccountMixin, models.Model):
     # -----------------------------
     # Choices
     # -----------------------------
+    ACCOUNT_FIELDS = ["account"]
     class LoanStatus(models.TextChoices):
         PENDING = 'pending', 'Pending Approval'
         APPROVED = 'approved', 'Approved'
@@ -298,6 +299,7 @@ class Loan(ActiveAccountMixin, models.Model):
     # -----------------------------
     def clean(self):
         super().clean()
+        self.check_active_accounts()
 
         # --------------------------------------------------
         # 🔹 BASIC VALIDATION
@@ -510,6 +512,7 @@ class Loan(ActiveAccountMixin, models.Model):
 
             # 🔹
 class BankChargesTransaction(ActiveAccountMixin):
+    ACCOUNT_FIELDS = ["to_member_account","from_member_account","from_bank_charge_account","to_bank_charge_account"]
 
     class TransactionType(models.TextChoices):
         DEPOSIT = 'deposit', 'Deposit'
@@ -745,6 +748,7 @@ class LoanWorkflowHistory(models.Model):
 # Loan Payment paid_on, loanCount, names, amount paid, amount_due, delay time, penalities_applied
 # -----------------------------
 class LoanPayment(ActiveAccountMixin, models.Model):
+
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     amount_due = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), editable=False)
@@ -755,6 +759,7 @@ class LoanPayment(ActiveAccountMixin, models.Model):
     penalty_applied = models.BooleanField(default=False)
     received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     ledger_posted = models.BooleanField(default=False, editable=False)
+    is_paid = models.BooleanField(default=False)
 
     def clean(self):
         super().clean()
@@ -851,5 +856,11 @@ class LoanPayment(ActiveAccountMixin, models.Model):
     def __str__(self):
         return f"Payment for Loan {self.loan.id} - {self.amount_due} due on {self.due_date}"
 
+    @property  ##Check tommorrrow, self.loan stauts ==active
+    def overdue(self):
+        return (
+                self.laon.status == self.LoanStatus.ACTIVE
+                and self.due_date < timezone.now().date()
+                and self.balance > 0)
 
 ##Using weighted Graphs (Penalize coreelation /number of nodes)						

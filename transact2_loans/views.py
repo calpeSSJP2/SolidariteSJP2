@@ -2,6 +2,12 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
+from decimal import Decimal
+
+from django.db.models import Q
+from django.views.generic import ListView
+
+from .models import BankChargesTransaction
 
 from accounts.utils.rbac import has_any_role, has_role, has_active_role
 from .forms import MoveStageForm
@@ -798,13 +804,13 @@ class LoanTypeSummaryView(LoginRequiredMixin, TemplateView):
 
         regular_loans = Loan.objects.filter(
             account=account,
-            loan_type=Loan.LoanType.REGULAR
-        )
+            loan_type=Loan.LoanType.REGULAR ).exclude(
+            status=Loan.LoanStatus.REJECTED )
 
         emergency_loans = Loan.objects.filter(
             account=account,
-            loan_type=Loan.LoanType.EMERGENCY
-        )
+            loan_type=Loan.LoanType.EMERGENCY ).exclude(
+            status=Loan.LoanStatus.REJECTED  )
 
         def summarize(loans):
             total_amount = loans.aggregate(
@@ -1357,13 +1363,6 @@ class MoveLoanStageView(LoginRequiredMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
 
 
-
-from decimal import Decimal
-
-from django.db.models import Q
-from django.views.generic import ListView
-
-from .models import BankChargesTransaction
 
 
 class BankChargesTransactionListView(ListView):

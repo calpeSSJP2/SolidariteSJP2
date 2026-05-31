@@ -48,6 +48,7 @@ class PenaltyMixin(models.Model):
 # Deposit Due Transaction
 # -----------------------------
 class DepositDueTransaction(PenaltyMixin, ActiveAccountMixin, BaseTransaction):
+    ACCOUNT_FIELDS = ["account"]
     account = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE,
         related_name='deposit_due_transactions'  ) #null=True, blank=True,account should NOT be nullable, But every due must belong to an account.
     due_date = models.DateField(db_index=True)
@@ -66,6 +67,7 @@ class DepositDueTransaction(PenaltyMixin, ActiveAccountMixin, BaseTransaction):
         - Late payments → calculate delay in months (partial months rounded up).
         """
         super().clean()
+        self.check_active_accounts()
 
         #if not self.due_date:
           #  raise ValidationError({'due_date': "A due date must be specified."}) ,But DateField() already enforces this.can not pass
@@ -74,7 +76,7 @@ class DepositDueTransaction(PenaltyMixin, ActiveAccountMixin, BaseTransaction):
         """
         Ensure monthly_due is calculated automatically.
         """
-
+        self.full_clean()
         if not self.monthly_due and self.account:
             shares = self.account.shares or 0
             self.monthly_due = shares * self.BASE_AMOUNT_PER_SHARE
@@ -96,6 +98,7 @@ class DepositDueTransaction(PenaltyMixin, ActiveAccountMixin, BaseTransaction):
         return max(self.expected_due - paid_amount, Decimal("0.00"))
 
 class DepositTransaction(ActiveAccountMixin, BaseTransaction):
+    ACCOUNT_FIELDS = ["account"]
     deposit_due = models.ForeignKey('DepositDueTransaction', null=True, blank=True, on_delete=models.SET_NULL,
                                     related_name='deposit_transactions')
     account = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE,
@@ -105,13 +108,13 @@ class DepositTransaction(ActiveAccountMixin, BaseTransaction):
 
     def clean(self):
         super().clean()
-
+        self.check_active_accounts()
         if self.deposit_due and self.account:
             if self.deposit_due.account != self.account:
                 raise ValidationError("Deposit account must match due account.")
 
     def save(self, *args, **kwargs):
-
+        self.full_clean()
         if self.deposit_due:
             self.account = self.deposit_due.account
 
@@ -152,6 +155,7 @@ class DepositTransaction(ActiveAccountMixin, BaseTransaction):
 # Withdrawal Transaction
 # -----------------------------
 class WithdrawalTransaction(ActiveAccountMixin, BaseTransaction):
+    ACCOUNT_FIELDS = ["account" ]
     account = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE,
                                 related_name='withdrawal_transactions')
 
@@ -168,6 +172,7 @@ class WithdrawalTransaction(ActiveAccountMixin, BaseTransaction):
 # Transfer Transaction, ##legers are in servises and called in Views
 # -----------------------------
 class TransferTransaction(ActiveAccountMixin, BaseTransaction):
+    ACCOUNT_FIELDS = [ "source_account", "destination_account",]
     source_account = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE,
                                        related_name='transfers_sent')
     destination_account = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE,
@@ -197,6 +202,7 @@ class SJP2Transaction(ActiveAccountMixin, BaseTransaction): #(Base transaction ,
     # -----------------------------
     # Transaction Type Enum
     # -----------------------------
+    ACCOUNT_FIELDS = [ "from_member_account",  "to_member_account", "from_sjp2_account","to_sjp2_account"]
     class TransactionType(models.TextChoices):
         INITIAL_DEPOSIT = 'initial_deposit', 'Initial Deposit'  # Capital contribution
         Loan_Interest = 'loan_interest', 'Loan Interest'

@@ -272,6 +272,17 @@ class MemberAccount(models.Model):
     def mark_dormant(self):
         self._change_status(self.StatusType.DORMANT)
 
+    def can_transact(self):
+        return self.status_type == self.StatusType.ACTIVE
+
+    def validate_active(self):
+        if self.status_type != self.StatusType.ACTIVE:
+            raise ValidationError(
+                f"Operation can not be performed due to Account {self.account_number} that is "
+                f"{self.status_type}." )
+
+
+
     #===========================
     ## Generate account:
     #=========================

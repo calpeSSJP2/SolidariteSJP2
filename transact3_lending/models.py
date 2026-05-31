@@ -1,27 +1,11 @@
-from decimal import Decimal
-from django.db import models, transaction
-from django.utils import timezone
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from transact2_loans.models import Loan  # Import your regular Loan mo
-# ✅ Import centralized mixin
-from accounts.mixins import ActiveAccountMixin
 
 from decimal import Decimal
-from django.db import models, transaction
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.db.models import Sum
-from django.conf import settings
 # -----------------------------
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Sum
 from django.utils import timezone
-
-from ledger.services import LedgerService
-from ledger.models import AccountStatement
 
 from accounts.mixins import ActiveAccountMixin
 from transact2_loans.models import Loan  # Import your regular Loan model
@@ -33,6 +17,7 @@ from ledger.models import AccountStatement
 # Peer-to-Peer Loan
 # -----------------------------
 class PeerToPeerLoan(ActiveAccountMixin, models.Model):
+    ACCOUNT_FIELDS = ["lender","borrower"]
     lender = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE, related_name='given_peer_loans')
     borrower = models.ForeignKey('accounts.MemberAccount', on_delete=models.CASCADE, related_name='received_peer_loans')
     contract = models.FileField(upload_to='peer_contracts/')

@@ -5,7 +5,7 @@ from django.utils import timezone
 from accounts.models import MemberAccount
 from decimal import Decimal
 from accounts.models import SHARE_VALUE  # ❌ Use the constant SHARE_VALUE instead of hardcoding 5000
-
+from accounts.mixins import ActiveAccountMixin
 # -----------------------------
 # Base class for share transactions
 # -----------------------------
@@ -21,13 +21,19 @@ class BaseTransaction(models.Model):
 
 # Share Increase
 # -----------------------------
-class ShareIncrease(BaseTransaction):
+class ShareIncrease(ActiveAccountMixin,BaseTransaction):
+    ACCOUNT_FIELDS = ["account",]
     account = models.ForeignKey( MemberAccount, on_delete=models.CASCADE, related_name='share_increase_transactions')
 
+    def clean(self):
+        super().clean()
+        self.check_active_accounts()
+
     def save(self, *args, **kwargs):
+        self.full_clean()
         # ❌ Prevent share increase on inactive accounts
-        if self.account.status_type != MemberAccount.StatusType.ACTIVE:
-            raise ValueError("❌ Cannot increase shares on inactive/suspended/dormant/closed account")
+        #if self.account.status_type != MemberAccount.StatusType.ACTIVE:
+         #   raise ValueError("❌ Cannot increase shares on inactive/suspended/dormant/closed account")
 
         with transaction.atomic():  # ❌ Ensure both transaction and account update succeed together
             super().save(*args, **kwargs)
@@ -39,16 +45,20 @@ class ShareIncrease(BaseTransaction):
 # -----------------------------
 # Share Decrease
 # -----------------------------
-class ShareDecrease(BaseTransaction):
-    account = models.ForeignKey(
-        MemberAccount,
-        on_delete=models.CASCADE,
+class ShareDecrease(ActiveAccountMixin, BaseTransaction):
+    ACCOUNT_FIELDS = ["account", ]
+    account = models.ForeignKey(MemberAccount, on_delete=models.CASCADE,
         related_name='share_decrease_transactions' )
+
+    def clean(self):
+        super().clean()
+        self.check_active_accounts()
 
     def save(self, *args, **kwargs):
         # ❌ Prevent share decrease on inactive accounts
-        if self.account.status_type != MemberAccount.StatusType.ACTIVE:
-            raise ValueError("❌ Cannot decrease shares on inactive/suspended/dormant/closed account")
+        #if self.account.status_type != MemberAccount.StatusType.ACTIVE:
+        #    raise ValueError("❌ Cannot decrease shares on inactive/suspended/dormant/closed account")
+        self.full_clean()
 
         with transaction.atomic():  # ❌ Atomic operation  (To control , ko biba saved, aruko account decrease_shares op yabase nayo saved
             super().save(*args, **kwargs)
