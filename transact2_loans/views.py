@@ -1293,7 +1293,7 @@ class LoanPaymentPlanView(LoginRequiredMixin, DetailView):
     model = Loan
     template_name = "transact2_loans/loan_payment_plan.html"
     context_object_name = "loan"
-
+    pk_url_kwarg = "loan_id"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
