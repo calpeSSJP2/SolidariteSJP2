@@ -811,6 +811,10 @@ class LoanTypeSummaryView(LoginRequiredMixin, TemplateView):
             account=account,
             loan_type=Loan.LoanType.EMERGENCY ).exclude(
             status=Loan.LoanStatus.REJECTED  )
+        rejected_loans = Loan.objects.filter(
+            account=account,
+            status=Loan.LoanStatus.REJECTED
+        ).order_by('-performed_on')
 
         def summarize(loans):
             total_amount = loans.aggregate(
@@ -832,9 +836,11 @@ class LoanTypeSummaryView(LoginRequiredMixin, TemplateView):
         regular_summary = summarize(regular_loans)
         emergency_summary = summarize(emergency_loans)
 
+
         context.update({
             "regular_loans": regular_loans,
             "emergency_loans": emergency_loans,
+            "rejected_loans": rejected_loans,
 
             "regular": regular_summary,
             "emergency": emergency_summary,

@@ -119,5 +119,39 @@
     {% endif %}
 
 </div>
+
+<!-- ================= REJECTED LOANS ================= -->
+<h4 class="mt-4 text-danger">Rejected Loan Applications</h4>
+
+{% if rejected_loans %}
+<table class="table table-hover table-striped">
+    <thead class="table-danger">
+        <tr>
+            <th>Request Date</th>
+            <th>Loan ID</th>
+            <th>Loan Type</th>
+            <th>Amount</th>
+            <th>Rejected On</th>
+            <th>Reason</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for loan in rejected_loans %}
+        <tr>
+            <td>{{ loan.created_at|date:"Y-m-d" }}</td>
+            <td>{{ loan.id }}</td>
+            <td>{{ loan.get_loan_type_display }}</td>
+            <td>{{ loan.amount|floatformat:2|intcomma }} RWF</td>
+            <td>{{ loan.performed_on|date:"Y-m-d" }}</td>
+            <td>{{ loan.rejected_reason|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-success">
+    No rejected loan applications.
+</div>
+{% endif %}
 {% include "transact2_loans/pagination.html" %}
 {% endblock %}
