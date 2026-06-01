@@ -378,57 +378,60 @@
 {% endblock %}
 
 {% block content %}
-<h2 class="mb-4">"Dear {{ user.get_full_name|default:user.username }},👋 Welcome {{ user.get_role_display }}!</h2>
+
+<h2 class="mb-4">
+    Dear {{ user.get_full_name|default:user.username }}, 👋
+    Welcome {{ user.get_role_display }}!
+</h2>
 
 <div class="container-fluid px-4">
 
-    <!-- Main Wrapper Card -->
     <div class="card shadow-sm p-4">
 
         <!-- Dashboard Statistics -->
-
         <div class="row gy-4">
 
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-primary h-100 shadow-sm">
-            <div class="card-body text-primary">
-                <h6>Registered Accounts</h6>
-                <h3>{{ total_accounts }}</h3>
+            <!-- ROW 1 -->
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-primary h-100 shadow-sm">
+                    <div class="card-body text-primary">
+                        <h6>Registered Accounts</h6>
+                        <h3>{{ total_accounts }}</h3>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-success h-100 shadow-sm">
-            <div class="card-body text-success">
-                <h6>Active Accounts</h6>
-                <h3>{{ active_accounts }}</h3>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-success h-100 shadow-sm">
+                    <div class="card-body text-success">
+                        <h6>Active Accounts</h6>
+                        <h3>{{ active_accounts }}</h3>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-secondary h-100 shadow-sm">
-            <div class="card-body text-secondary">
-                <h6>Inactive Accounts</h6>
-                <h3>{{ inactive_accounts }}</h3>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-secondary h-100 shadow-sm">
+                    <div class="card-body text-secondary">
+                        <h6>Inactive Accounts</h6>
+                        <h3>{{ inactive_accounts }}</h3>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-success h-100 shadow-sm">
-            <div class="card-body text-success">
-                <h6>Total Shares</h6>
-                <h3>{{ total_shares }}</h3>
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-info h-100 shadow-sm">
+                    <div class="card-body text-info">
+                        <h6>Total Shares</h6>
+                        <h3>{{ total_shares }}</h3>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-</div>
+            <!-- ROW 2 -->
 
-
-            <div class="col-12 col-sm-6 col-lg-4">
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card border-success h-100 shadow-sm">
                     <div class="card-body text-success">
                         <h6>Active Loans</h6>
@@ -437,7 +440,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-sm-6 col-lg-4">
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card border-warning h-100 shadow-sm">
                     <div class="card-body text-warning">
                         <h6>Peer Loans</h6>
@@ -446,7 +449,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-sm-6 col-lg-4">
+            <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card border-danger h-100 shadow-sm">
                     <div class="card-body text-danger">
                         <h6>Overdue Loans</h6>
@@ -455,7 +458,16 @@
                 </div>
             </div>
 
-            <!-- Financial Section -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-dark h-100 shadow-sm">
+                    <div class="card-body text-dark">
+                        <h6>Dormant Accounts</h6>
+                        <h3>{{ dormant_accounts }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3 : FINANCIALS -->
 
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="card border-success h-100 shadow-sm">
@@ -476,18 +488,18 @@
             </div>
 
             <div class="col-12 col-md-6 col-lg-3">
-                <div class="card bg-info text-white h-100">
+                <div class="card bg-info text-white h-100 shadow-sm">
                     <div class="card-body">
-                        <h6>SSJP2 unpaid Loans</h6>
+                        <h6>SSJP2 Unpaid Loans</h6>
                         <h5>{{ total_loans_remaining|floatformat:2|intcomma }} RWF</h5>
                     </div>
                 </div>
             </div>
 
             <div class="col-12 col-md-6 col-lg-3">
-                <div class="card bg-danger text-white h-100">
+                <div class="card bg-danger text-white h-100 shadow-sm">
                     <div class="card-body">
-                        <h6>Peer Loans</h6>
+                        <h6>Peer Loan Balance</h6>
                         <h5>{{ total_peer_remaining|floatformat:2|intcomma }} RWF</h5>
                     </div>
                 </div>
@@ -496,17 +508,20 @@
         </div>
 
     </div>
-</div>
-<!-- Dove -->
-<div class="col-md-4 d-flex align-items-center justify-content-center" style="gap: 3cm;">
-  <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
-  <img src="{% static 'mysite/images/FaFa.JPG' %}" class="img-fluid rounded">
+
+    <!-- Images -->
+    <div class="row mt-4">
+        <div class="col-12 d-flex justify-content-center align-items-center gap-4 flex-wrap">
+            <img src="{% static 'mysite/images/Dove.JPG' %}"
+                 class="img-fluid rounded shadow"
+                 style="max-height:250px;">
+
+            <img src="{% static 'mysite/images/FaFa.JPG' %}"
+                 class="img-fluid rounded shadow"
+                 style="max-height:250px;">
+        </div>
+    </div>
 
 </div>
-</div>
-
-<!-- Graph for Monthly Deposits -->
-
-
 
 {% endblock %}
