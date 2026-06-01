@@ -723,6 +723,11 @@ class DashboardStatsMixin:
                 is_fully_paid=False ).count(),
             #'overdue_loans': ( LoanPayment.objects.filter( due_date__lt=today ).distinct() .count()),
             # Member accounts
+            'overdue_loans': LoanPayment.objects.filter(
+                loan__status=Loan.LoanStatus.ACTIVE,
+                due_date__lt=today,
+                is_paid=False
+            ).count(),   ##Loan is ACTIVE,Payment due date has passed,Payment has not been paid
             'total_principal': (
                     MemberAccount.objects.aggregate(total=Sum('principal'))['total']
                     or Decimal('0.00')

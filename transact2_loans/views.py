@@ -5,7 +5,8 @@ from django.http import HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.utils import timezone
-
+from openpyxl import Workbook
+from django.http import HttpResponse
 from datetime import datetime, time
 import openpyxl
 
@@ -1308,7 +1309,7 @@ class LoanPaymentPlanView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["schedule"] = self.object.payment_schedule
+        context["schedule"] = self.object.payment_schedule  ##This is a template
         return context
 
 # CUSTOMER + STAFF TRACKING VIEW
@@ -1361,8 +1362,6 @@ class LoanWorkflowDashboardView(LoginRequiredMixin, TemplateView):
         ).count()
         context["pending_workflows"] = LoanWorkflow.objects.select_related("loan",     "handler"  ).order_by("-moved_at")
         return context
-
-
 
 
 class MoveLoanStageView(LoginRequiredMixin, FormView):
@@ -1418,8 +1417,7 @@ class BankChargesTransactionListView(ListView):
 
         if start_date:
             queryset = queryset.filter(
-                timestamp__date__gte=start_date
-            )
+                timestamp__date__gte=start_date )
 
         # End date
         end_date = self.request.GET.get('end_date')
@@ -1528,9 +1526,7 @@ class ExportBankChargesExcelView(LoginRequiredMixin, View):
             start_dt = timezone.make_aware(
                 datetime.combine(
                     datetime.strptime(start_date, "%Y-%m-%d"),
-                    time.min
-                )
-            )
+                    time.min ))
             transactions = transactions.filter(timestamp__gte=start_dt)
 
         # End date
@@ -1539,9 +1535,7 @@ class ExportBankChargesExcelView(LoginRequiredMixin, View):
             end_dt = timezone.make_aware(
                 datetime.combine(
                     datetime.strptime(end_date, "%Y-%m-%d"),
-                    time.max
-                )
-            )
+                    time.max))
             transactions = transactions.filter(timestamp__lte=end_dt)
 
         wb = openpyxl.Workbook()
@@ -1591,15 +1585,12 @@ class ExportBankChargesExcelView(LoginRequiredMixin, View):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
-        response[
-            'Content-Disposition'
-        ] = 'attachment; filename=bank_charges_transactions.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=bank_charges_transactions.xlsx'
 
         wb.save(response)
 
         return response
-from openpyxl import Workbook
-from django.http import HttpResponse
+
 
 class LoanPaymentPlanExcelView(LoginRequiredMixin, View):
 

@@ -432,7 +432,7 @@ class Loan(ActiveAccountMixin, models.Model):
 
         return latest == self
 
-    from datetime import timedelta
+
 
     def approval_sla(self):
         if self.approved_on:
@@ -528,8 +528,7 @@ class Loan(ActiveAccountMixin, models.Model):
                 "amount_due": monthly_due,
                 "amount_paid": paid_for_this_month,
                 "balance": max(running_balance, Decimal("0.00")),
-                "is_paid": paid_for_this_month >= monthly_due,
-            })
+                "is_paid": paid_for_this_month >= monthly_due,  })
 
         return schedule
 
@@ -888,11 +887,11 @@ class LoanPayment(ActiveAccountMixin, models.Model):
     def __str__(self):
         return f"Payment for Loan {self.loan.id} - {self.amount_due} due on {self.due_date}"
 
-    @property  ##Check tommorrrow, self.loan stauts ==active
-    def overdue(self):
-        return (
-                self.laon.status == self.LoanStatus.ACTIVE
-                and self.due_date < timezone.now().date()
-                and self.balance > 0)
+    #@property  ##Check tommorrrow, self.loan stauts ==active
+    #def overdue(self):
+    #    return (
+   #             self.laon.status == self.LoanStatus.ACTIVE
+     #           and self.due_date < timezone.now().date()
+      #          and self.balance > 0)
 
 ##Using weighted Graphs (Penalize coreelation /number of nodes)						
