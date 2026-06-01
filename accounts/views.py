@@ -717,21 +717,24 @@ class DashboardStatsMixin:
                 status_type=MemberAccount.StatusType.ACTIVE
             ).count(),
 
+            'inactive_accounts': MemberAccount.objects.exclude(
+                status_type=MemberAccount.StatusType.ACTIVE
+            ).count(),
+
+
             'total_accounts': MemberAccount.objects.count(),
              ##
             'peer_loans': PeerToPeerLoan._base_manager.filter(
                 is_fully_paid=False ).count(),
             #'overdue_loans': ( LoanPayment.objects.filter( due_date__lt=today ).distinct() .count()),
             # Member accounts
-            'overdue_loans': LoanPayment.objects.filter(
-                loan__status=Loan.LoanStatus.ACTIVE,
-                due_date__lt=today,
-                is_paid=False
-            ).count(),   ##Loan is ACTIVE,Payment due date has passed,Payment has not been paid
+            'overdue_loans': ( LoanPayment.objects.filter(
+        loan__status=Loan.LoanStatus.ACTIVE,
+        due_date__lt=today,
+        is_paid=False ).values('loan').distinct() .count()),   ##Loan is ACTIVE,Payment due date has passed,Payment has not been paid
             'total_principal': (
                     MemberAccount.objects.aggregate(total=Sum('principal'))['total']
-                    or Decimal('0.00')
-            ),
+                    or Decimal('0.00')  ),
 
             'total_balance': (
                     MemberAccount.objects.aggregate(total=Sum('balance'))['total']
