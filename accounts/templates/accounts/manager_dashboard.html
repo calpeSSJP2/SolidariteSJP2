@@ -204,6 +204,7 @@
         <a href="{% url 'transact1_regular_deposit:transaction_list' %}" class="nav-link px-3">📊 SSJP2 Transfers</a>
         <a href="{% url 'accounts:ssjp2_account-actions' %}" class="nav-link px-3">📄 SSJP2 Reports</a>
         <a href="{% url 'transact2_loans:loan_list' %}" class="nav-link px-3">📋 Loan Reports</a>
+            <a href="{% url 'transact2_loans:loan_payment_list' %}"    class="nav-link px-3"> 💵 Active loan  List  </a>
          <a href="{% url 'transact3_lending:peer_loan_list' %}" class="nav-link px-3">📄 Bollower / Lending List</a>
             </div>
     </div>
@@ -251,124 +252,149 @@
 {% endblock %}
 
 {% block content %}
-<h2 class="mb-4">"Dear {{ user.get_full_name|default:user.username }},👋 Welcome  {{ user.get_role_display }}!</h2>
 
-<!-- 2. Dashboard Statistics Section -->
-<div class="row mb-4">
+<h2 class="mb-4">
+    Dear {{ user.get_full_name|default:user.username }}, 👋
+    Welcome {{ user.get_role_display }}!
+</h2>
 
-    <div class="col-md-4">
-        <div class="card border-primary shadow-sm">
-            <div class="card-body text-primary">
-                <h6 class="card-title">Registered Accounts</h6>
-                <h3>{{ total_accounts }}</h3>
+<div class="container-fluid px-4">
+
+    <div class="card shadow-sm p-4">
+
+        <!-- Dashboard Statistics -->
+        <div class="row gy-4">
+
+            <!-- ROW 1 -->
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-primary h-100 shadow-sm">
+                    <div class="card-body text-primary">
+                        <h6>Registered Accounts</h6>
+                        <h3>{{ total_accounts }}</h3>
+                    </div>
+                </div>
             </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-success h-100 shadow-sm">
+                    <div class="card-body text-success">
+                        <h6>Active Accounts</h6>
+                        <h3>{{ active_accounts }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-secondary h-100 shadow-sm">
+                    <div class="card-body text-secondary">
+                        <h6>Inactive Accounts</h6>
+                        <h3>{{ inactive_accounts }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-info h-100 shadow-sm">
+                    <div class="card-body text-info">
+                        <h6>Total Shares</h6>
+                        <h3>{{ total_shares }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2 -->
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-success h-100 shadow-sm">
+                    <div class="card-body text-success">
+                        <h6>Active Loans</h6>
+                        <h3>{{ active_loans }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-warning h-100 shadow-sm">
+                    <div class="card-body text-warning">
+                        <h6>Peer Loans</h6>
+                        <h3>{{ peer_loans }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-danger h-100 shadow-sm">
+                    <div class="card-body text-danger">
+                        <h6>Overdue Loans</h6>
+                        <h3>{{ overdue_loans }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card border-dark h-100 shadow-sm">
+                    <div class="card-body text-dark">
+                        <h6>Dormant Accounts</h6>
+                        <h3>{{ dormant_accounts }}</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3 : FINANCIALS -->
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="card border-success h-100 shadow-sm">
+                    <div class="card-body text-success">
+                        <h6>Total Members Principal</h6>
+                        <h5>{{ total_principal|floatformat:2|intcomma }} RWF</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="card border-success h-100 shadow-sm">
+                    <div class="card-body text-success">
+                        <h6>Total Members Balance</h6>
+                        <h5>{{ total_balance|floatformat:2|intcomma }} RWF</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="card bg-info text-white h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6>SSJP2 Unpaid Loans</h6>
+                        <h5>{{ total_loans_remaining|floatformat:2|intcomma }} RWF</h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="card bg-danger text-white h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6>Peer Loan Balance</h6>
+                        <h5>{{ total_peer_remaining|floatformat:2|intcomma }} RWF</h5>
+                    </div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
-    <div class="col-md-4">
-        <div class="card border-success shadow-sm">
-            <div class="card-body text-success">
-                <h6 class="card-title">Active Accounts</h6>
-                <h3>{{ active_accounts }}</h3>
-            </div>
-        </div>
-    </div>
+    <!-- Images -->
+    <div class="row mt-4">
+        <div class="col-12 d-flex justify-content-center align-items-center gap-4 flex-wrap">
+            <img src="{% static 'mysite/images/Dove.JPG' %}"
+                 class="img-fluid rounded shadow"
+                 style="max-height:250px;">
 
-    <div class="col-md-4">
-        <div class="card border-success shadow-sm">
-            <div class="card-body text-success">
-                <h6 class="card-title">Total Shares</h6>
-                <h3>{{ total_shares }}</h3>
-            </div>
+            <img src="{% static 'mysite/images/FaFa.JPG' %}"       class="img-fluid rounded shadow"
+                 style="max-height:250px;">
         </div>
     </div>
 
 </div>
-<div class="row mb-4">
-
-    <div class="col-md-4">
-        <div class="card border-success shadow-sm">
-            <div class="card-body text-success">
-                <h6 class="card-title">Active Loans</h6>
-                <h3>{{ active_loans }}</h3>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card border-warning shadow-sm">
-            <div class="card-body text-warning">
-                <h6 class="card-title">Peer Loans</h6>
-                <h3>{{ peer_loans }}</h3>
-            </div>
-        </div>
-    </div>
-<!-- 4. Overdue laons:The number of unpaid amount or  late or overdue.That date passed without payment. -->
-    <div class="col-md-4">
-        <div class="card border-danger shadow-sm">
-            <div class="card-body text-danger">
-                <h6 class="card-title">Overdue Loans</h6>
-                <h3>{{ overdue_loans.count }}</h3>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- 4. Members Financial Position -->
-<div class="row mb-4">
-
-    <div class="col-md-3">
-        <div class="card border-success shadow-sm">
-            <div class="card-body text-success">
-                <h6 class="card-title">Total Members Principal</h6>
-                <h4>{{ total_principal|floatformat:2|intcomma }} RWF</h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card border-success shadow-sm">
-            <div class="card-body text-success">
-                <h6 class="card-title">Total Members Balance</h6>
-                <h4>{{ total_balance|floatformat:2|intcomma }} RWF</h4>
-            </div>
-        </div>
-    </div>
-
-
-
-
-<!-- 4. Loan Financial Overview -->
-
-
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h5 class="card-title">SSJP2 Loans </h5>
-                <p class="card-text">
-                    {{ total_loans_remaining|floatformat:2|intcomma }} RWF
-                </p>
-            </div>
-        </div>
-    </div>
-
-      <div class="col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title">Peer Loans</h5>
-                <p class="card-text">
-                    {{ total_peer_remaining|floatformat:2|intcomma }} RWF
-                </p>
-            </div>
-        </div>
-    </div>
-<div class="col-md-6 d-flex align-items-center justify-content-center" style="gap: 10cm;">
-  <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
-  <img src="{% static 'mysite/images/Dove.JPG' %}" class="img-fluid rounded">
-</div>
-</div>
-
-<!-- Graph for Monthly Deposits -->
 
 {% endblock %}
