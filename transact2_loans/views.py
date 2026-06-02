@@ -1130,7 +1130,7 @@ class LoanPaymentView(FormView):
         member_account = self.get_member_account()
         member_loans = self.get_member_loans(member_account)
 
-        main_loan = member_loans.order_by('-issued_on').first()
+        main_loan = member_loans.first()
 
         peer_loans = self.get_peer_loans(member_account)
 
@@ -1175,7 +1175,7 @@ class LoanPaymentView(FormView):
         main_loan = member_loans.order_by('-issued_on').first()
 
         loan_form = self.get_form()
-        loan_form.instance.loan = main_loan
+        #loan_form.instance.loan = main_loan
         loan_form.instance.received_by = request.user
 
         peer_loans = self.get_peer_loans(member_account)
@@ -1205,7 +1205,7 @@ class LoanPaymentView(FormView):
             context = self.get_context_data(form=loan_form)
             context['peer_forms'] = list(zip(peer_loans, peer_forms))
             return self.render_to_response(context)
-
+            selected_loan = loan_form.cleaned_data['loan']
         peer_total = sum(
             Decimal(form.cleaned_data['amount'])
             for form in peer_forms
@@ -1242,10 +1242,12 @@ class LoanPaymentView(FormView):
             )
 
             # Activate main loan if needed
-            if main_loan.status == Loan.LoanStatus.APPROVED:
-                main_loan.status = Loan.LoanStatus.ACTIVE
-                main_loan.save(update_fields=['status'])
-
+            #if main_loan.status == Loan.LoanStatus.APPROVED:
+            #    main_loan.status = Loan.LoanStatus.ACTIVE
+           #    main_loan.save(update_fields=['status'])
+            if selected_loan.status == Loan.LoanStatus.APPROVED:
+                selected_loan.status = Loan.LoanStatus.ACTIVE
+                selected_loan.save(update_fields=['status'])
             # Save payment
             try:
                 loan_payment = loan_form.save()

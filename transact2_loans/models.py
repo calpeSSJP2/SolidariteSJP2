@@ -133,6 +133,7 @@ class LoanManager(models.Manager):
             account=account,
             status__in=Loan.OPEN_STATUSES
         ).order_by('-issued_on')
+
     # --------------------------------------------------
     # TOTAL OUTSTANDING BALANCE
     # --------------------------------------------------

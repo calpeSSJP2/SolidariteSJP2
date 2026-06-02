@@ -299,8 +299,11 @@ class LoanPaymentForm(forms.ModelForm):
                 pk=member_account.pk
             )
             self.initial['member_account'] = member_account
-
-            loans = Loan.objects.filter(account=member_account)
+            loans = Loan.objects.filter(  account=member_account,
+                status__in=[ Loan.LoanStatus.APPROVED,
+                    Loan.LoanStatus.ACTIVE,         ]
+            ).order_by('-issued_on')
+            ##loans = Loan.objects.filter(account=member_account)
             self.fields['loan'].queryset = loans
 
             if loans.exists():
