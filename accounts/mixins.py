@@ -12,7 +12,7 @@ class ActiveAccountMixin(models.Model):
         for field in self.ACCOUNT_FIELDS:
             account = getattr(self, field, None)
 
-            if account:
+            if account and hasattr(account, "validate_active"):
                 account.validate_active()
 
 
