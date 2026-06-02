@@ -1185,10 +1185,8 @@ class LoanPaymentView(FormView):
                 request.POST,
                 peer_loan=loan,
                 user=request.user,
-                prefix=f"peer_{loan.id}"
-            )
-            for loan in peer_loans
-        ]
+                prefix=f"peer_{loan.id}"  )
+            for loan in peer_loans ]
 
         # -------------------------
         # VALIDATION
@@ -1205,13 +1203,13 @@ class LoanPaymentView(FormView):
             context = self.get_context_data(form=loan_form)
             context['peer_forms'] = list(zip(peer_loans, peer_forms))
             return self.render_to_response(context)
-            selected_loan = loan_form.cleaned_data['loan']
-        peer_total = sum(
-            Decimal(form.cleaned_data['amount'])
+
+        selected_loan = loan_form.cleaned_data['loan']
+
+        peer_total = sum( Decimal(form.cleaned_data['amount'])
             for form in peer_forms
             if hasattr(form, "cleaned_data")
-            and form.cleaned_data.get('amount')
-        )
+            and form.cleaned_data.get('amount')        )
 
         loan_amount = loan_form.cleaned_data['amount']
 
