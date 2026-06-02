@@ -30,8 +30,7 @@ class PeerToPeerLoan(ActiveAccountMixin, models.Model):
     # -----------------------------
     def clean(self):
         super().clean()
-        ActiveAccountMixin.check_active_accounts(self.lender)
-        ActiveAccountMixin.check_active_accounts(self.borrower)
+        self.check_active_accounts()
 
         if self.lender == self.borrower:
             raise ValidationError("Lender and borrower cannot be the same account.")
@@ -118,8 +117,10 @@ class PeerLoanRepayment(ActiveAccountMixin, models.Model):
         if not self.peer_loan:
             raise ValidationError("Peer loan is required.")
 
-        ActiveAccountMixin.check_active_accounts(self.peer_loan.borrower)
-        ActiveAccountMixin.check_active_accounts(self.peer_loan.lender)
+       # ActiveAccountMixin.check_active_accounts(self.peer_loan.borrower)
+       # ActiveAccountMixin.check_active_accounts(self.peer_loan.lender)
+        self.peer_loan.borrower.validate_active()
+        self.peer_loan.lender.validate_active()
 
         if self.amount is None or self.amount <= 0:
             raise ValidationError("Repayment amount must be greater than zero.")
