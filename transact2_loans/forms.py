@@ -237,15 +237,8 @@ class AccountLookupForm(forms.Form):
 
 class LoanPaymentForm(forms.ModelForm):
 
-    member_account = forms.ModelChoiceField(
-        queryset=MemberAccount.objects.none(),
-        label="Member"
-    )
-
-    loan = forms.ModelChoiceField(
-        queryset=Loan.objects.none(),
-        label="Loan"
-    )
+    member_account = forms.ModelChoiceField( queryset=MemberAccount.objects.none(), label="Member"  )
+    loan = forms.ModelChoiceField( queryset=Loan.objects.none(),    label="Loan"  )
 
     class Meta:
         model = LoanPayment
@@ -296,15 +289,21 @@ class LoanPaymentForm(forms.ModelForm):
 
         if member_account:
             self.fields['member_account'].queryset = MemberAccount.objects.filter(
-                pk=member_account.pk
-            )
+                pk=member_account.pk            )
             self.initial['member_account'] = member_account
+
             loans = Loan.objects.filter(  account=member_account,
                 status__in=[ Loan.LoanStatus.APPROVED,
                     Loan.LoanStatus.ACTIVE,         ]
             ).order_by('-issued_on')
             ##loans = Loan.objects.filter(account=member_account)
             self.fields['loan'].queryset = loans
+            choices = [("", "---------")]
+            for loan in loans:
+                choices.append(( loan.pk,
+                        f"Loan #{loan.id} - Balance: {loan.balance:,.2f}"  ) )
+
+            self.fields['loan'].choices = choices
 
             if loans.exists():
                 self.initial['loan'] = loans.first()
