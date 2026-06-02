@@ -9,6 +9,8 @@ from django.db import models, transaction
 from django.utils import timezone
 from accounts.mixins import ActiveAccountMixin
 from decimal import Decimal
+from django.db import models
+from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.conf import settings
@@ -57,8 +59,7 @@ class AuditLog(models.Model):
 # -----------------------------
 # Manager
 # -----------------------------
-from decimal import Decimal
-from django.db import models
+
 
 
 class LoanManager(models.Manager):
@@ -114,7 +115,7 @@ class LoanManager(models.Manager):
     # --------------------------------------------------
     # UNPAID LOANS
     # --------------------------------------------------
-    def unpaid_loans_for_account(self, account):
+    def unpaid_loans_for_account1(self, account):
         """
         Returns all open loans that still
         have unpaid balances.
@@ -127,6 +128,11 @@ class LoanManager(models.Manager):
             if loan.balance > 0
         ]
 
+    def unpaid_loans_for_account(self, account):
+        return self.filter(
+            account=account,
+            status__in=Loan.OPEN_STATUSES
+        ).order_by('-issued_on')
     # --------------------------------------------------
     # TOTAL OUTSTANDING BALANCE
     # --------------------------------------------------
@@ -779,7 +785,7 @@ class LoanWorkflowHistory(models.Model):
 # Loan Payment paid_on, loanCount, names, amount paid, amount_due, delay time, penalities_applied
 # -----------------------------
 class LoanPayment(ActiveAccountMixin, models.Model):
-
+    ACCOUNT_FIELDS = ['account']  ##Beacuse no account fied ,use property from loan
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     amount_due = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), editable=False)
@@ -794,7 +800,7 @@ class LoanPayment(ActiveAccountMixin, models.Model):
 
     def clean(self):
         super().clean()
-
+        self.check_active_accounts()
         # 1️⃣ Ensure loan is selected
         if not self.loan_id:
             raise ValidationError("Loan must be selected for this payment.")
@@ -850,6 +856,10 @@ class LoanPayment(ActiveAccountMixin, models.Model):
         # Apply penalty via service
         penalty_amount = LoanPaymentService.apply_penalty(self)
         return penalty_amount
+
+    @property
+    def account(self):
+        return self.loan.account
 
     @transaction.atomic
     def save(self, *args, **kwargs):
