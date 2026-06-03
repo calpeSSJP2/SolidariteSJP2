@@ -283,7 +283,7 @@ class LoanPaymentForm(forms.ModelForm):
         self.fields['loan'].queryset = Loan.objects.none()
 
         # ✅ Force Django date format
-        self.fields['due_date'].disabled = True
+        #self.fields['due_date'].disabled = True
        # self.fields['due_date'].input_formats = ['%Y-%m-%d']
         self.fields['paid_on'].input_formats = ['%Y-%m-%d']
 

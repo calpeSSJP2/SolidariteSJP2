@@ -139,27 +139,17 @@
                         </div>
 
                       <!-- Hidden due date submitted with form -->
-<input type="hidden"
-       name="due_date"
-       id="id_due_date">
 
 <div class="col-md-6 mb-3">
-
     <label class="form-label fw-semibold">
-        Due Date
+        Oldest Unpaid Due Date
     </label>
 
     <div class="form-control bg-light"
          id="due-date-display">
-        Select a loan...
+         Select a loan...
     </div>
-
-    <small class="text-muted">
-        Automatically determined from the oldest unpaid installment.
-    </small>
-
 </div>
-
                         <div class="col-md-6 mb-3">
                             {{ form.paid_on.label_tag }}
                             {{ form.paid_on }}
