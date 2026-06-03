@@ -36,7 +36,12 @@ def add_months(start_date: date, months: int) -> date:
 
     return date(year, month, day)
 
-
+def month_end(dt):
+        """
+        Return the last day of the month.
+        """
+        first_of_next_month = dt.replace(day=1) + relativedelta(months=1)
+        return first_of_next_month - relativedelta(days=1)
 
 User = get_user_model()
 
@@ -104,29 +109,23 @@ class LoanManager(models.Manager):
 
         loans = self.filter(
             account=account,
-            status=Loan.LoanStatus.ACTIVE
-        )
+            status=Loan.LoanStatus.ACTIVE)
 
         return [
             loan for loan in loans
-            if loan.balance > 0
-        ]
+            if loan.balance > 0 ]
 
     # --------------------------------------------------
     # UNPAID LOANS
     # --------------------------------------------------
     def unpaid_loans_for_account1(self, account):
-        """
-        Returns all open loans that still
-        have unpaid balances.
-        """
+        """   Returns all open loans that still   have unpaid balances.     """
 
         loans = self.open_loans_for_account(account)
 
         return [
             loan for loan in loans
-            if loan.balance > 0
-        ]
+            if loan.balance > 0        ]
 
     def unpaid_loans_for_account(self, account):
         return self.filter(
@@ -138,18 +137,10 @@ class LoanManager(models.Manager):
     # TOTAL OUTSTANDING BALANCE
     # --------------------------------------------------
     def total_outstanding_balance(self, account):
-        """
-        Calculates total unpaid debt across
-        ALL borrower loans:
-        - regular loans
-        - top-ups
-        - emergency loans
-        """
-
+        """    Calculates total unpaid debt across    ALL borrower loans:  - regular loans
+        - top-ups   - emergency loans       """
         total = Decimal("0.00")
-
         loans = self.unpaid_loans_for_account(account)
-
         for loan in loans:
 
             balance = loan.balance
@@ -163,35 +154,22 @@ class LoanManager(models.Manager):
     # ACTIVE LOAN COUNT
     # --------------------------------------------------
     def active_loan_count(self, account):
-        """
-        Returns the number of active loans
-        that still have balances.
-        """
-
+        """  Returns the number of active loans   that still have balances.        """
         return len(
-            self.active_loans_with_balance(account)
-        )
+            self.active_loans_with_balance(account))
 
     # --------------------------------------------------
     # DUPLICATE REGULAR LOAN CHECK
     # --------------------------------------------------
-    def has_duplicate_regular(
-        self,
-        account,
-        loan_type,
-        exclude_loan_id=None
-    ):
+    def has_duplicate_regular( self, account,   loan_type,
+        exclude_loan_id=None ):
         """
-        Prevent duplicate standalone regular loans.
-
-        Top-up loans are excluded because they are
-        extensions of an existing regular loan.
+        Prevent duplicate standalone regular loans.   Top-up loans are excluded because they are   extensions of an existing regular loan.
         """
 
         qs = self.open_loans_for_account(account).filter(
             loan_type=loan_type,
-            top_up_of__isnull=True
-        )
+            top_up_of__isnull=True )
 
         if exclude_loan_id:
             qs = qs.exclude(pk=exclude_loan_id)
@@ -217,28 +195,19 @@ class LoanManager(models.Manager):
         while root.top_up_of:
             root = root.top_up_of
 
-        return self.filter(
-            models.Q(pk=root.pk) |
-            models.Q(top_up_of=root)
-        ).order_by("issued_on")
+        return self.filter( models.Q(pk=root.pk) |
+            models.Q(top_up_of=root)).order_by("issued_on")
 
     # --------------------------------------------------
     # TOTAL CHAIN BALANCE
     # --------------------------------------------------
     def total_chain_balance(self, loan):
         """
-        Returns total outstanding balance for a
-        loan chain (original + top-ups).
-        """
-
+        Returns total outstanding balance for a loan chain (original + top-ups).      """
         total = Decimal("0.00")
-
         loans = self.current_chain_loans(loan)
-
         for item in loans:
-
             balance = item.balance
-
             if balance > 0:
                 total += balance
 
@@ -285,7 +254,6 @@ class Loan(ActiveAccountMixin, models.Model):
     performed_by = models.ForeignKey(  settings.AUTH_USER_MODEL,  on_delete=models.SET_NULL,    null=True,
         blank=True,  related_name="processed_loans"  )
 
-
     top_up_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="topups")
     rejected_reason = models.TextField(blank=True, null=True, help_text="Reason for rejecting the loan")
     performed_on = models.DateTimeField(blank=True, null=True)
@@ -327,12 +295,10 @@ class Loan(ActiveAccountMixin, models.Model):
         ):
             if Loan.objects.has_duplicate_regular(
                     self.account,
-                    self.loan_type
-            ):
+                    self.loan_type     ):
                 raise ValidationError(
                     "You already have an active regular loan with a balance. "
-                    "You can request a top-up instead."
-                )
+                    "You can request a top-up instead."  )
 
         # --------------------------------------------------
         # 🔹 TERM VALIDATION
@@ -340,17 +306,14 @@ class Loan(ActiveAccountMixin, models.Model):
         if self.loan_type == self.LoanType.REGULAR:
             if self.term_months not in (
                     self.TermChoices.ONE_YEAR,
-                    self.TermChoices.TWO_YEARS,
-            ):
+                    self.TermChoices.TWO_YEARS, ):
                 raise ValidationError(
-                    "Invalid term for regular loan. Choose 1 year or 2 years."
-                )
+                    "Invalid term for regular loan. Choose 1 year or 2 years." )
 
         if self.loan_type == self.LoanType.EMERGENCY:
             if self.term_months != self.TermChoices.THREE_MONTHS:
                 raise ValidationError(
-                    "Emergency loans must be for 3 months only."
-                )
+                    "Emergency loans must be for 3 months only."     )
 
         # --------------------------------------------------
         # 🔹 NORMALIZE & CALCULATE INTEREST
@@ -361,15 +324,13 @@ class Loan(ActiveAccountMixin, models.Model):
             self.interest_rate = (
                 Decimal("5.0")
                 if self.term_months == self.TermChoices.ONE_YEAR
-                else Decimal("7.0")
-            )
+                else Decimal("7.0"))
         else:
             self.interest_rate = Decimal("1.5")
 
         self.interest_rate = self.interest_rate.quantize(Decimal("0.01"))
 
-        self.interest_amount = (
-                self.amount * self.interest_rate / Decimal("100")
+        self.interest_amount = (self.amount * self.interest_rate / Decimal("100")
         ).quantize(Decimal("0.01"))
 
     # -----------------------------
@@ -400,21 +361,52 @@ class Loan(ActiveAccountMixin, models.Model):
         return (self.total_payable - self.total_paid).quantize(Decimal("0.01"))
 
     @property
-    def due_date(self):
-        return add_months(self.issued_on, self.term_months)
+    def due_date1(self):
+        return add_months(self.issued_on, self.term_months) ##this does not consider nest months
 
+    @property
+    def due_date(self):
+        """ Final installment due date.      """
+        return month_end(
+            self.issued_on + relativedelta(months=self.term_months))
     @property
     def monthly_payment(self):
         if self.term_months > 0:
             return (self.total_payable / Decimal(self.term_months)).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
         return Decimal('0.00')
 
+
+
+
+    @property
+    def first_due_date(self):
+        """ First payment is due at the end of next month. ex loan.issued_on = date(2026, 6, 3),loan.first_due_date
+# 2026-07-31       """
+        next_month = self.issued_on + relativedelta(months=1)
+        return month_end(next_month)
+
+    def next_monthly_due_date(self):
+        paid_installments = int( self.total_paid / self.monthly_payment )
+        next_month = paid_installments + 1
+        if next_month > self.term_months:
+            return self.due_date
+
+        return month_end(
+            self.issued_on + relativedelta(months=next_month))
+
+    @property
+    def unpaid_installments(self):
+        paid_installments = int(self.total_paid / self.monthly_payment )
+        expected_installments = ((timezone.now().date().year - self.first_due_date.year) * 12 +
+                                        (timezone.now().date().month - self.first_due_date.month)) + 1
+        return max(expected_installments - paid_installments, 0 )
+
     @property
     def is_current1(self):  ##This is critize to work on only one Original loan with no top-ups, Original loan with one top-up,
         """
-        Return True if this loan is the most recent active/top-up for the account.
+        Return True if this loan is the most recent active/top-up for the account.# If this is a top-up, check the latest top-up in the chain
         """
-        # If this is a top-up, check the latest top-up in the chain
+
         if self.top_up_of:
             latest_topup = self.top_up_of.topups.order_by('-issued_on').first()
             return latest_topup == self
@@ -422,20 +414,16 @@ class Loan(ActiveAccountMixin, models.Model):
         return not self.topups.exists()
 
     def is_current(self):
-        """
-        Return True if this loan is the most recent active/top-up for the account.
+        """ Return True if this loan is the most recent active/top-up for the account.# Find the root loan (original)
         """
 
-        # Find the root loan (original)
         root = self
         while root.top_up_of:
             root = root.top_up_of
 
         # Get latest loan in the chain (original + all top-ups)
-        latest = (Loan.objects
-            .filter(Q(pk=root.pk) | Q(top_up_of=root))
-            .order_by('-issued_on')
-            .first())
+        latest = (Loan.objects.filter(Q(pk=root.pk) | Q(top_up_of=root))
+            .order_by('-issued_on').first())
 
         return latest == self
 
@@ -499,8 +487,7 @@ class Loan(ActiveAccountMixin, models.Model):
                 term_months=new_term_months,
                 status=Loan.LoanStatus.ACTIVE,
                 top_up_of=self,
-                issued_on=timezone.now().date(),
-            )
+                issued_on=timezone.now().date(),)
             # ❌ Mark the old loan as inactive for payments
             self.refresh_status()  # existing method will update status to ACTIVE/PAID
             return topup_loan
@@ -516,15 +503,13 @@ class Loan(ActiveAccountMixin, models.Model):
         schedule = []
 
         monthly_due = self.monthly_payment
-        total_paid = self.total_paid
-
-        remaining_paid = total_paid
+        remaining_paid = self.total_paid
         running_balance = self.total_payable
 
         for month in range(1, self.term_months + 1):
-            due_date = self.issued_on + relativedelta(months=month)
+            due_date = month_end(self.issued_on + relativedelta(months=month))
 
-            paid_for_this_month = min(monthly_due, remaining_paid)
+            paid_for_this_month = min(monthly_due,   remaining_paid)
 
             remaining_paid -= paid_for_this_month
             running_balance -= paid_for_this_month
@@ -535,7 +520,7 @@ class Loan(ActiveAccountMixin, models.Model):
                 "amount_due": monthly_due,
                 "amount_paid": paid_for_this_month,
                 "balance": max(running_balance, Decimal("0.00")),
-                "is_paid": paid_for_this_month >= monthly_due,  })
+                "is_paid": paid_for_this_month >= monthly_due,})
 
         return schedule
 
@@ -672,20 +657,15 @@ class BankChargesTransaction(ActiveAccountMixin):
             if not self.from_member_account:
                 raise ValidationError({
                     'from_member_account':
-                        "Deposit must have a source member account."
-                })
+                        "Deposit must have a source member account."})
 
             if not self.to_bank_charge_account:
-                raise ValidationError({
-                    'to_bank_charge_account':
-                        "Deposit must have a destination bank charge account."
-                })
+                raise ValidationError({'to_bank_charge_account':
+                        "Deposit must have a destination bank charge account." })
 
             self._ensure_sufficient_balance(
                 self.from_member_account,
-                self.amount,
-                "from_member_account"
-            )
+                self.amount, "from_member_account"  )
 
         # =========================
         # WITHDRAWAL
@@ -696,20 +676,17 @@ class BankChargesTransaction(ActiveAccountMixin):
             if not self.from_bank_charge_account:
                 raise ValidationError({
                     'from_bank_charge_account':
-                        "Withdrawal must have a source bank charge account."
-                })
+                        "Withdrawal must have a source bank charge account."   })
 
             if not self.to_member_account:
                 raise ValidationError({
                     'to_member_account':
-                        "Withdrawal must have a destination member account."
-                })
+                        "Withdrawal must have a destination member account." })
 
             self._ensure_sufficient_balance(
                 self.from_bank_charge_account,
                 self.amount,
-                "from_bank_charge_account"
-            )
+                "from_bank_charge_account" )
 
 class LoanWorkflow(models.Model):
     class Stage(models.TextChoices):
@@ -846,6 +823,7 @@ class LoanPayment(ActiveAccountMixin, models.Model):
         # 7️⃣ Compute amount_due based on delay
         self.amount_due = (self.loan.monthly_payment * Decimal(self.delay_time)).quantize(Decimal("0.01"))
 
+        #self.amount_due = self.loan.monthly_payment
         # 8️⃣ Ensure payment amount is greater than zero
         if self.amount <= 0:
             raise ValidationError("Payment amount must be greater than zero.")

@@ -1288,7 +1288,26 @@ class LoanPaymentView(FormView):
 
         return redirect(self.success_url)
 # =====================================================
+# views.py
 
+from django.views.generic import DetailView
+from transact2_loans.models import Loan
+
+class LoanInstallmentStatusView(DetailView):
+    model = Loan
+    template_name = "transact2_loans/loan_installment_status.html"
+    context_object_name = "loan"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        loan = self.object
+        context["oldest_due_date"] = loan.next_monthly_due_date()
+        context["monthly_installment"] = loan.monthly_payment
+        # Example
+        unpaid_installments = loan.unpaid_installments_count()
+        context["unpaid_installments"] = unpaid_installments
+        context["amount_due"] = ( unpaid_installments * loan.monthly_payment   )
+        return context
 
 class LoanPaymentPlanView(LoginRequiredMixin, DetailView):
     model = Loan

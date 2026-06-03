@@ -103,6 +103,18 @@
     {{ form.loan.label_tag }}
     {{ form.loan }}
     {{ form.loan.errors }}
+                            <div class="mt-2">
+
+        <a href="#"
+   id="loan-details-link"
+   class="btn btn-sm btn-outline-info"
+   target="_blank">
+    📄 View Loan Installment Status
+</a>
+
+
+    </div>
+
 
     <div id="loan-balance-box"
          class="alert alert-info mt-2"
@@ -126,11 +138,27 @@
                             {{ form.receipt_ref_no.errors }}
                         </div>
 
-                        <div class="col-md-6 mb-3">
-                            {{ form.due_date.label_tag }}
-                            {{ form.due_date }}
-                            {{ form.due_date.errors }}
-                        </div>
+                      <!-- Hidden due date submitted with form -->
+<input type="hidden"
+       name="due_date"
+       id="id_due_date">
+
+<div class="col-md-6 mb-3">
+
+    <label class="form-label fw-semibold">
+        Due Date
+    </label>
+
+    <div class="form-control bg-light"
+         id="due-date-display">
+        Select a loan...
+    </div>
+
+    <small class="text-muted">
+        Automatically determined from the oldest unpaid installment.
+    </small>
+
+</div>
 
                         <div class="col-md-6 mb-3">
                             {{ form.paid_on.label_tag }}
@@ -206,4 +234,35 @@
   </div>
 </div>
 
+<script>
+const loanStatusUrlTemplate =
+    "{% url 'transact2_loans:loan-installment-status' 999999 %}";
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const loanSelect = document.getElementById("id_loan");
+    const detailsLink = document.getElementById("loan-details-link");
+
+    function updateLoanLink() {
+
+        const loanId = loanSelect.value;
+
+        if (!loanId) {
+            detailsLink.href = "#";
+            detailsLink.classList.add("disabled");
+            return;
+        }
+
+        detailsLink.href =
+            loanStatusUrlTemplate.replace("999999", loanId);
+
+        detailsLink.classList.remove("disabled");
+    }
+
+    loanSelect.addEventListener("change", updateLoanLink);
+
+    // Set link for initially selected loan
+    updateLoanLink();
+});
+</script>
 {% endblock %}

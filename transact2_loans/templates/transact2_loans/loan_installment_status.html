@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            Loan Installment Status
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th>Loan ID</th>
+                    <td>{{ loan.id }}</td>
+                </tr>
+
+                <tr>
+                    <th>Oldest Due Date</th>
+                    <td>{{ oldest_due_date }}</td>
+                </tr>
+
+                <tr>
+                    <th>Monthly Installment</th>
+                    <td>{{ monthly_installment }}</td>
+                </tr>
+
+                <tr>
+                    <th>Unpaid Installments</th>
+                    <td>{{ unpaid_installments }}</td>
+                </tr>
+
+                <tr class="table-warning">
+                    <th>Amount Due</th>
+                    <td>{{ amount_due }}</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

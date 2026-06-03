@@ -52,9 +52,24 @@ class LoanPaymentService:
         return max((paid_on.year - due_date.year) * 12 +
             (paid_on.month - due_date.month),  1   )
 
+    @classmethod
+    def calculate_amount_due1(cls, loan_payment): ##This may mislead because the 1st mont is free
+        return loan_payment.loan.monthly_payment
     # -----------------------------
-    # Core penalty calculation
+    # Core penalty calculation based on installment
     # -----------------------------
+    @classmethod
+    def calculate_amount_due(cls, loan_payment):
+        loan = loan_payment.loan
+        unpaid_installments = 0
+        for installment in loan.payment_schedule:
+
+            if (installment["due_date"] <= loan_payment.paid_on
+                    and not installment["is_paid"]   ):
+                unpaid_installments += 1
+
+        return (loan.monthly_payment * unpaid_installments).quantize(Decimal("0.01"))
+
     @classmethod
     def calculate_penalty(cls, payment):
         """
@@ -108,25 +123,8 @@ class LoanPaymentService:
 
         reference = f"SJP2Transaction ID {txn.pk}"
 
-        # Create ledger entries to reflect the penalty movement
-       # LedgerService.create_statement(
-         #   account=loan_payment.loan.account,
-         #   transaction_type=AccountStatement.TransactionType.PENALTY_LATE_PAYMENT,
-         #   debit=penalty_amount,
-         #   credit=Decimal('0.00'),
-         #   reference=reference,  )  ##This duplicate , because it is recorded  in ssjp2transaction
-        ##Legder for laon Pyment,, it increase balace =credit
-       # LedgerService.create_statement(
-         #   account=system_account,
-         #   transaction_type=AccountStatement.TransactionType.LOAN_PAYMENT,
-        #    debit=Decimal('0.00'),
-         #   credit=amount,
-         #   reference=reference, )
-
-        # Mark penalty as applied to avoid re-applying the same penalty
         loan_payment.penalty_applied = True
         loan_payment.save(update_fields=['penalty_applied'])
-
         logger.info(f"[LoanPenaltyService] Applied penalty {penalty_amount} for payment {loan_payment.id}")
 
         return penalty_amount
@@ -148,43 +146,62 @@ class LoanPaymentService:
         if loan_payment.amount < loan_payment.amount_due:
             return SJP2Transaction.TransactionType.Penality_Underpay_deposit
         return SJP2Transaction.TransactionType.Penality_Late_deposit
+    ##-----------------------------
+    @classmethod
 
+    def prepare_payment1(cls, loan_payment):
+
+        if not loan_payment.paid_on:
+            raise ValidationError( "Payment date is required."  )
+
+        if not loan_payment.due_date:
+            loan_payment.due_date = ( loan_payment.loan.next_monthly_due_date())
+            loan_payment.delay_time = cls.calculate_months_delay(loan_payment.due_date, loan_payment.paid_on)
+            loan_payment.amount_due = cls.calculate_amount_due( loan_payment  )
+
+        return loan_payment
     # -----------------------------
+
+    @classmethod
+    @classmethod
+    def prepare_payment(cls, loan_payment):
+
+        if not loan_payment.paid_on:
+            raise ValidationError(
+                "Payment date is required." )
+
+        if not loan_payment.due_date:
+            loan_payment.due_date = (
+                loan_payment.loan.next_monthly_due_date()   )
+
+        loan_payment.delay_time = cls.calculate_months_delay(
+            loan_payment.due_date,
+            loan_payment.paid_on   )
+
+        loan_payment.amount_due = cls.calculate_amount_due(
+            loan_payment    )
+
+        return loan_payment
     # Process loan repayment (with penalties)
     # -----------------------------
     @classmethod
     @transaction.atomic
     def process_payment(cls, loan_payment):
+
         if not loan_payment.loan:
             raise ValidationError("Loan must be specified for payment.")
-
         borrower_account = loan_payment.loan.account
-
-        # 🔐 HARD RULE: ensure no unpaid peer loans block main loan
-        LoanRepaymentEligibilityService.ensure_can_repay_loan(borrower_account)
-
+        LoanRepaymentEligibilityService.ensure_can_repay_loan( borrower_account  )
         payment_amount = loan_payment.amount
 
-        # --------------------------
-        # Apply penalty
-        # --------------------------
+        # Prepare payment
+        cls.prepare_payment(loan_payment)
         penalty_amount = cls.apply_penalty(loan_payment)
-        remaining_amount = max(payment_amount - penalty_amount, Decimal('0.00'))
-
-        # --------------------------
-        # Repay peer loans first Remove Because peer loans are already paid via the form.
-        # --------------------------
-        #repaid_peers, remaining_amount = PeerLoanRepaymentService.repay_borrower_loans(
-        #    borrower_account,
-        #    remaining_amount,
-        #    paid_by_user=loan_payment.received_by        )
-
-        # --------------------------
-        # Repay cooperative loan
-        # --------------------------
+        remaining_amount = max( payment_amount - penalty_amount, Decimal("0.00")    )
         loan = loan_payment.loan
-        payable_remaining = loan.total_payable - loan.total_paid
-        loan_repayment_amount = min(remaining_amount, payable_remaining)
+        payable_remaining = (loan.total_payable - loan.total_paid )
+        loan_repayment_amount = min( remaining_amount,
+            payable_remaining)
 
         if loan_repayment_amount > 0:
             LedgerService.create_statement(
@@ -192,60 +209,28 @@ class LoanPaymentService:
                 transaction_type=AccountStatement.TransactionType.LOAN_PAYMENT,
                 debit=Decimal("0.00"),
                 credit=loan_repayment_amount,
-                reference=f"Loan ID {loan.pk}",
-            )
+                reference=f"Loan ID {loan.pk}", )
 
         remaining_amount -= loan_repayment_amount
-
-        # --------------------------
-        # Record any excess as account credit
-        # --------------------------
         if remaining_amount > 0:
             LedgerService.create_statement(
                 account=borrower_account,
                 transaction_type=AccountStatement.TransactionType.EXCESS_PAYMENT,
                 debit=Decimal("0.00"),
                 credit=remaining_amount,
-                reference=f"Loan ID {loan.pk} - excess",
-            )
+                reference=f"Loan ID {loan.pk} - excess", )
 
-        # --------------------------
-        # Update loan status
-        # --------------------------
+        # update loan status
         loan.refresh_status()
 
         return {
+            "amount_due": loan_payment.amount_due,
             "penalty": penalty_amount,
-           # "peer_repayment": repaid_peers,
-            "loan_repayment": loan_repayment_amount,
+            "paid": payment_amount,
+            "applied_to_loan": loan_repayment_amount,
             "excess": remaining_amount,
-        }
-# services.py
-#class LoanRepaymentEligibilityService:
-
-  #  @staticmethod
-  #  def can_repay_loan(member_account) -> bool:
-   #     from transact3_lending.models import PeerToPeerLoan
-    #    return not PeerToPeerLoan.objects.filter(
-    #        borrower=member_account,
-     #       is_fully_paid=False ).exists()
-
-    #@staticmethod
-    #def ensure_can_repay_loan(member_account):
-     #   if not LoanRepaymentEligibilityService.can_repay_loan(member_account):
-     #       raise ValidationError(
-     #           "Borrower has unpaid peer-to-peer loans."
-      #      )
-
-##Process payment, 1.get amount,it goes to account(yours or lender), save these fields,+balance, -laon balance. seconday
-##1.Check penality, [[see process in deposit:1st deposit amount, save, 2.check and save penalities
-                #SJP2Transaction.objects.create(
-               # from_member_account=member_account,
-               # to_sjp2_account=system_account,
-               # amount=deposit_due_txn.flat_penalty,(Put interest amount)
-                #transaction_type=SJP2Transaction.TransactionType.loan interest,
-              #  reference_transaction=deposit_due_txn,
-              #  description=f"Late penalty for DepositDueTransaction {deposit_due_txn.id}" )
+            "loan_balance": loan.balance,
+        }   ## Amount Due = Number of unpaid installments × Monthly Payment
 # =====================================================
 
 class LoanLimitService:

@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (LoanWorkflowDetailView,LoanWorkflowDashboardView,MoveLoanStageView,BankChargesTransactionListView,
     LoanDetailView, TopUpLoanCreateView,EmergencyLoanRequestView,LoanOptionsView,  LoanPaymentView, LoanListView,MemberLoanListView,LoanRequestView,
     ApproveLoanView,RejectLoanView,LoanSummaryView, LoanTypeSummaryView, TellerAccountSearchView,PendingLoanView,
-    LoanPaymentSearchView,LoanPaymentListView, ExportBankChargesExcelView, LoanActionView, LoanPaymentPlanView,
+    LoanPaymentSearchView,LoanPaymentListView, ExportBankChargesExcelView, LoanActionView, LoanPaymentPlanView,LoanInstallmentStatusView,
     LoanPaymentPlanExcelView)
 from django.views.generic import TemplateView
 app_name = 'transact2_loans'
@@ -68,4 +68,7 @@ path('bank-charges/export/',  ExportBankChargesExcelView.as_view(),  name='expor
 
     # NEW: Excel export
     path(  'loan/<int:loan_id>/schedule/excel/',   LoanPaymentPlanExcelView.as_view(),    name='loan_payment_plan_excel'
-    ),]
+    ),
+    path(  "loan/<int:pk>/installment-status/", LoanInstallmentStatusView.as_view(), name="loan-installment-status",
+    ),
+]

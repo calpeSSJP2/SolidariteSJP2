@@ -236,7 +236,6 @@ class AccountLookupForm(forms.Form):
     )
 
 class LoanPaymentForm(forms.ModelForm):
-
     member_account = forms.ModelChoiceField( queryset=MemberAccount.objects.none(), label="Member"  )
     loan = forms.ModelChoiceField( queryset=Loan.objects.none(),    label="Loan"  )
 
@@ -246,7 +245,7 @@ class LoanPaymentForm(forms.ModelForm):
             'member_account',
             'loan',
             'amount',
-            'due_date',
+            #'due_date',
             'paid_on',
             'receipt_ref_no'
         ]
@@ -263,10 +262,10 @@ class LoanPaymentForm(forms.ModelForm):
             }),
 
             # 🔥 Flatpickr fields
-            'due_date': forms.DateInput(attrs={
-                'class': 'form-control datepicker',
-                'placeholder': 'YYYY-MM-DD'
-            }),
+           # 'due_date': forms.DateInput(attrs={
+            #    'class': 'form-control datepicker',
+             #   'placeholder': 'YYYY-MM-DD'
+           # }),
             'paid_on': forms.DateInput(attrs={
                 'class': 'form-control datepicker',
                 'placeholder': 'YYYY-MM-DD'
@@ -284,7 +283,8 @@ class LoanPaymentForm(forms.ModelForm):
         self.fields['loan'].queryset = Loan.objects.none()
 
         # ✅ Force Django date format
-        self.fields['due_date'].input_formats = ['%Y-%m-%d']
+        self.fields['due_date'].disabled = True
+       # self.fields['due_date'].input_formats = ['%Y-%m-%d']
         self.fields['paid_on'].input_formats = ['%Y-%m-%d']
 
         if member_account:
