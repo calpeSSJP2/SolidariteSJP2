@@ -1,11 +1,12 @@
-from django import forms
-from django import forms
+
+from django.core.exceptions import ValidationError
 from .models import  WithdrawalTransaction, TransferTransaction,DepositTransaction, DepositDueTransaction
+from .services import DepositDueTransactionService
 from django.utils import timezone
 from decimal import Decimal
 from accounts.models import SJP2_Account,IncomeSource,MemberAccount
 from django import forms
-from .models import DepositDueTransaction
+
 
 class MemberAccountSearchForm(forms.Form):
     q = forms.CharField(
@@ -126,7 +127,6 @@ class DepositForm(forms.ModelForm):
         fields = [
             "account",
             "amount",
-            "due_date",
             "paid_on",
             "receipt_ref_no",
             "description",
@@ -137,62 +137,46 @@ class DepositForm(forms.ModelForm):
                 "rows": 2,
                 "cols": 5,
                 "class": "form-control",
-                "placeholder": "Enter description..."
-            })
-        }
+                "placeholder": "Enter description..." }) }
 
     def __init__(self, *args, **kwargs):
         account = kwargs.pop("account", None)
         super().__init__(*args, **kwargs)
-
         if account:
             self.fields["account"].queryset = MemberAccount.objects.filter(pk=account.pk)
             self.initial["account"] = account
         else:
             self.fields["account"].queryset = MemberAccount.objects.all()
-
-
         for field in self.fields.values():
             field.widget.attrs.update({"class": "form-control"})
 
     def clean(self):
         cleaned_data = super().clean()
-
         account = cleaned_data.get("account")
-        due_date = cleaned_data.get("due_date")
+        if account:
+            due = DepositDueTransactionService.get_oldest_unpaid_due(account)
 
-        if account and due_date:
-
-            due, created = DepositDueTransaction.objects.get_or_create(
-                account=account,
-                due_date=due_date,
-                defaults={
-                    "monthly_due": (account.shares or 0) *
-                    DepositDueTransaction.BASE_AMOUNT_PER_SHARE
-                }
-            )
+            if not due:
+                raise ValidationError(
+                    "No unpaid dues available."
+                )
 
             cleaned_data["deposit_due"] = due
 
         return cleaned_data
 
     def save(self, commit=True):
-
         instance = super().save(commit=False)
-
         instance.deposit_due = self.cleaned_data["deposit_due"]
-
         if commit:
             instance.save()
-
         return instance
 
 
 class WithdrawalForm(forms.ModelForm):
     account = forms.ModelChoiceField(
         queryset=MemberAccount.objects.none(),
-        label="Member Account"
-    )
+        label="Member Account")
 
     def __init__(self, *args, **kwargs):
         account = kwargs.pop('account', None)

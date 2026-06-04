@@ -7,6 +7,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from decimal import Decimal
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+
+from .models import DepositDueTransaction
+from accounts.models import MemberAccount
 
 from accounts.models import MemberAccount
 from .forms import LegacyAccountUpdateForm
@@ -790,3 +796,49 @@ class LegacyAccountImportView(
             "account": self.account
         })
 
+class MonthlyDepositSummaryView(LoginRequiredMixin, TemplateView):
+    template_name = "monthly_deposit_summary.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        account_id = self.kwargs.get("account_id")
+
+        account = MemberAccount.objects.get(pk=account_id)
+
+        unpaid_dues = (
+            DepositDueTransaction.objects
+            .filter(
+                account=account,
+                is_paid=False
+            )
+            .order_by("due_date")
+        )
+
+        oldest_due = unpaid_dues.first()
+
+        total_monthly_due = sum(
+            (due.monthly_due for due in unpaid_dues),
+            Decimal("0.00")
+        )
+
+        total_penalties = sum(
+            (due.penalty_unpaid for due in unpaid_dues),
+            Decimal("0.00")
+        )
+
+        total_outstanding = (
+            total_monthly_due +
+            total_penalties
+        )
+
+        context.update({
+            "account": account,
+            "unpaid_dues": unpaid_dues,
+            "unpaid_months": unpaid_dues.count(),
+            "oldest_due_date": (oldest_due.due_date if oldest_due else None ),
+            "total_monthly_due": total_monthly_due,
+            "total_penalties": total_penalties,
+            "total_outstanding": total_outstanding, })
+
+        return context

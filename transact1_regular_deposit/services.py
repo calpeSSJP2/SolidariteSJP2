@@ -1,73 +1,132 @@
 import logging
 
+from dateutil.relativedelta import relativedelta
+
 logger = logging.getLogger(__name__)
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import date
 from django.core.exceptions import ValidationError
 from accounts.models import MemberAccount, SJP2_Account,AccountStatusHistory,IncomeSource, ExpensePurpose
 from ledger.services import LedgerService
 from django.db import transaction
 from django.utils import timezone
 from ledger.models import AccountStatement
-
+from .models import DepositDueTransaction
 
 
 class DepositDueTransactionService:
     FLAT_PENALTY_PER_MONTH = Decimal("500.00")
     UNDERPAYMENT_PENALTY_RATE = Decimal("0.01")
     TWO_PLACES = Decimal("0.01")
+    DUE_DAY = 10
+
+    from datetime import date
 
     @staticmethod
-    def calculate_months_delay(due_date, paid_on) -> int:
-        """
-        Calculate delay in months. Any partial month counts as a full month.
-        """
+    def due_date_for_month(year, month):
+        return date(year, month, 10)  ##10th each month
+
+    @classmethod
+    def generate_due_records(cls, account):
+
+        today = timezone.now().date()
+
+        first_due = date(
+            account.created_on.year,
+            account.created_on.month,
+            cls.DUE_DAY
+        )
+
+        if account.created_on.day > cls.DUE_DAY:
+            first_due += relativedelta(months=1)
+
+        current = first_due
+
+        while current <= today:
+            DepositDueTransaction.objects.get_or_create(
+                account=account,
+                due_date=current,
+                defaults={
+                    "monthly_due":
+                        (account.shares or 0)
+                        * DepositDueTransaction.BASE_AMOUNT_PER_SHARE
+                }  )
+
+            current += relativedelta(months=1)
+
+
+
+    @staticmethod
+    def get_oldest_unpaid_due(account):
+        return (DepositDueTransaction.objects
+            .filter(
+                account=account,
+                is_paid=False ).order_by("due_date").first())
+
+    @staticmethod   ##For a fixed due day (10th),
+    def calculate_months_delay(due_date, paid_on):
         if not due_date or not paid_on or paid_on <= due_date:
             return 0
+        months = ((paid_on.year - due_date.year) * 12
+                + (paid_on.month - due_date.month))
+        return max(months, 1)
 
-        months = (paid_on.year - due_date.year) * 12 + (paid_on.month - due_date.month)
 
-        if paid_on.day > due_date.day:
-            months += 1
-
-        return months
 
     @classmethod
     def calculate_transaction(cls, txn):
         """
-        Calculates penalties and updates DepositDueTransaction fields.
+        Calculate penalties and update the linked DepositDueTransaction.each DepositDueTransaction represents one month's due
         """
         due = txn.deposit_due
 
-        delay_months = cls.calculate_months_delay(due.due_date, txn.paid_on)
+        if not due:
+            raise ValidationError("Deposit transaction must be linked to a due record.")
+
+        delay_months = cls.calculate_months_delay(
+            due.due_date,
+            txn.paid_on
+        )
+
         due.delay_time = delay_months
 
-        shares = Decimal(txn.account.shares or 0)
+        shares = Decimal(due.account.shares or 0)
 
-        # Flat penalty
+        # -------------------------
+        # Late-payment penalty
+        # -------------------------
         flat_penalty = Decimal("0.00")
-        for month in range(1, delay_months + 1):
-            flat_penalty += cls.FLAT_PENALTY_PER_MONTH * month * shares
 
+        if delay_months > 0:
+            flat_penalty = sum(
+                cls.FLAT_PENALTY_PER_MONTH * Decimal(month) * shares
+                for month in range(1, delay_months + 1))
+
+        # -------------------------
         # Underpayment penalty
-        unpaid_amount = max(due.expected_due- txn.amount, Decimal("0.00"))
-        percent_penalty = unpaid_amount * cls.UNDERPAYMENT_PENALTY_RATE * Decimal(delay_months)
+        # -------------------------
+        expected_amount = due.monthly_due
+        unpaid_amount = max(expected_amount - txn.amount, Decimal("0.00"))
+        percent_penalty = (unpaid_amount * cls.UNDERPAYMENT_PENALTY_RATE   * Decimal(delay_months)     )
+        # -------------------------
+        # Round values
+        # -------------------------
+        due.flat_penalty = flat_penalty.quantize(  cls.TWO_PLACES,  ROUND_HALF_UP )
+        due.percent_penalty = percent_penalty.quantize( cls.TWO_PLACES, ROUND_HALF_UP )
+        due.penalty_unpaid = ( due.flat_penalty   + due.percent_penalty  ).quantize(  cls.TWO_PLACES, ROUND_HALF_UP      )
+        total_required = expected_amount + due.penalty_unpaid
+        due.is_paid = txn.amount >= total_required
 
-        due.flat_penalty = flat_penalty.quantize(cls.TWO_PLACES, ROUND_HALF_UP) ##DELAY PENALITY
-        due.percent_penalty = percent_penalty.quantize(cls.TWO_PLACES, ROUND_HALF_UP)
-        due.penalty_unpaid = (due.flat_penalty + due.percent_penalty).quantize(cls.TWO_PLACES, ROUND_HALF_UP)
-
-        due.is_paid = txn.amount >= (due.expected_due+ due.penalty_unpaid)
-
-        due.save(update_fields=[
-            "delay_time",
-            "flat_penalty",
-            "percent_penalty",
-            "penalty_unpaid",
-            "is_paid"
-        ])
+        due.save(  update_fields=[
+                "delay_time",
+                "flat_penalty",
+                "percent_penalty",
+                "penalty_unpaid",
+                "is_paid",
+            ]
+        )
 
         return due.penalty_unpaid, due.percent_penalty
-
     @classmethod
     @transaction.atomic
     def calculate_and_save(cls, txn):

@@ -4,19 +4,12 @@ from decimal import Decimal, ROUND_DOWN
 from calendar import monthrange
 from django.db.models import Q ##This is built in function that has OR, AND,..
 from django.core.exceptions import ValidationError
-from django.conf import settings
+
 from django.db import models, transaction
-from django.utils import timezone
 from accounts.mixins import ActiveAccountMixin
-from decimal import Decimal
-from django.db import models
-from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-from django.db import models
 from django.conf import settings
 from django.utils import timezone
-###from dateutil.relativedelta import relativedelta
-##
 from django.contrib.auth import get_user_model
 
 
@@ -33,13 +26,10 @@ def add_months(start_date: date, months: int) -> date:
     last_day = monthrange(year, month)[1]
     if day > last_day:
         day = last_day
-
     return date(year, month, day)
-
+##relativedelta is a class from the dateutil library that allows you to add or subtract calendar-based time periods (months, years, days, etc.) from dates.
 def month_end(dt):
-        """
-        Return the last day of the month.
-        """
+        """ Return the last day of the month.    """
         first_of_next_month = dt.replace(day=1) + relativedelta(months=1)
         return first_of_next_month - relativedelta(days=1)
 
@@ -534,7 +524,125 @@ class Loan(ActiveAccountMixin, models.Model):
         with transaction.atomic():
             super().save(*args, **kwargs)
 
-            # 🔹
+        # -----------------------------
+        # Loan Payment paid_on, loanCount, names, amount paid, amount_due, delay time, penalities_applied
+        # -----------------------------
+        class LoanPayment(ActiveAccountMixin, models.Model):
+            ACCOUNT_FIELDS = ['account']  ##Beacuse no account fied ,use property from loan
+            loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
+            amount = models.DecimalField(max_digits=12, decimal_places=2)
+            amount_due = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), editable=False)
+            paid_on = models.DateField(null=True, blank=True)
+            due_date = models.DateField(blank=True, null=True)
+            receipt_ref_no = models.CharField(max_length=12, unique=True, blank=True, null=True)
+            delay_time = models.PositiveIntegerField(default=0, editable=False)  # Delay in months
+            penalty_applied = models.BooleanField(default=False)
+            received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+            ledger_posted = models.BooleanField(default=False, editable=False)
+            is_paid = models.BooleanField(default=False)
+
+            def clean(self):
+                super().clean()
+                self.check_active_accounts()
+                # 1️⃣ Ensure loan is selected
+                if not self.loan_id:
+                    raise ValidationError("Loan must be selected for this payment.")
+
+                # 2️⃣ Check borrower account status (must be active)
+                if self.loan.account.status_type != 'active':
+                    raise ValidationError("Cannot accept payment: borrower account is inactive.")
+
+                # 🔴 Prevent fully paid loan
+                if self.loan.balance <= 0:
+                    raise ValidationError("This loan is fully paid. No further payments are allowed.")
+
+                # 🔴 Prevent overpayment
+                if self.amount > self.loan.balance:
+                    raise ValidationError(
+                        f"Payment exceeds remaining loan balance ({self.loan.balance:.2f})."
+                    )
+
+                # 3️⃣ Check for duplicate receipt reference number
+                if self.receipt_ref_no:
+                    exists = LoanPayment.objects.filter(receipt_ref_no=self.receipt_ref_no).exclude(pk=self.pk).exists()
+                    if exists:
+                        raise ValidationError(
+                            {'receipt_ref_no': "This receipt reference number has already been used."})
+
+                # 4️⃣ Snapshot due date (if not already set)
+                if not self.due_date:
+                    self.due_date = self.loan.next_monthly_due_date()
+
+                # 5️⃣ Ensure `paid_on` is set if not provided
+                if not self.paid_on:
+                    self.paid_on = timezone.now().date()
+
+                # 6️⃣ Validate delay time (calculate based on `paid_on` vs `due_date`)
+                if self.paid_on and self.due_date and self.paid_on > self.due_date:
+                    months_late = (
+                            (self.paid_on.year - self.due_date.year) * 12 +
+                            (self.paid_on.month - self.due_date.month))
+                    self.delay_time = max(months_late, 1)
+                else:
+                    self.delay_time = 0
+
+                # 7️⃣ Compute amount_due based on delay
+                self.amount_due = (self.loan.monthly_payment * Decimal(self.delay_time)).quantize(Decimal("0.01"))
+
+                # self.amount_due = self.loan.monthly_payment
+                # 8️⃣ Ensure payment amount is greater than zero
+                if self.amount <= 0:
+                    raise ValidationError("Payment amount must be greater than zero.")
+
+            def apply_penalty(self):
+                """Apply penalty if the payment is late and update relevant accounts."""
+                from .services import LoanPaymentService
+
+                # Apply penalty via service
+                penalty_amount = LoanPaymentService.apply_penalty(self)
+                return penalty_amount
+
+            @property
+            def account(self):
+                return self.loan.account
+
+            @transaction.atomic
+            def save(self, *args, **kwargs):
+                is_new = self._state.adding
+
+                self.full_clean()
+                super().save(*args, **kwargs)
+
+                # 🔐 Ledger must be written ONLY ONCE
+                if is_new and not self.ledger_posted:
+                    self.record_repayment_in_ledger()
+                    self.ledger_posted = True
+                    super().save(update_fields=['ledger_posted'])
+
+            def record_repayment_in_ledger(self):
+                """Record the loan repayment in the ledger and update the loan status if needed."""
+                from .services import LoanPaymentService
+
+                # Handle loan repayment
+                LoanPaymentService.process_payment(self)  ##This also has ledgers
+
+                # Check if loan is fully paid and update status if needed
+                if self.loan.balance <= 0:
+                    self.loan.status = Loan.LoanStatus.PAID
+                    self.loan.save()
+
+            @property
+            def repayment_progress_percent(self):
+                """Returns the repayment progress percentage of the loan."""
+                total_payable = self.loan.total_payable
+                if total_payable == 0:
+                    return Decimal("0.00")
+                return ((self.loan.total_paid / total_payable) * 100).quantize(Decimal("0.01"))
+
+            def __str__(self):
+                return f"Payment for Loan {self.loan.id} - {self.amount_due} due on {self.due_date}"
+
+        # 🔹
 class BankChargesTransaction(ActiveAccountMixin):
     ACCOUNT_FIELDS = ["to_member_account","from_member_account","from_bank_charge_account","to_bank_charge_account"]
 
@@ -760,122 +868,6 @@ class LoanWorkflowHistory(models.Model):
         return f"{self.workflow.loan} -> {self.stage}"
 
 ##Ledger in services
-# -----------------------------
-# Loan Payment paid_on, loanCount, names, amount paid, amount_due, delay time, penalities_applied
-# -----------------------------
-class LoanPayment(ActiveAccountMixin, models.Model):
-    ACCOUNT_FIELDS = ['account']  ##Beacuse no account fied ,use property from loan
-    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    amount_due = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), editable=False)
-    paid_on = models.DateField(null=True, blank=True)
-    due_date = models.DateField(blank=True, null=True)
-    receipt_ref_no = models.CharField(max_length=12, unique=True, blank=True, null=True)
-    delay_time = models.PositiveIntegerField(default=0, editable=False)  # Delay in months
-    penalty_applied = models.BooleanField(default=False)
-    received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    ledger_posted = models.BooleanField(default=False, editable=False)
-    is_paid = models.BooleanField(default=False)
-
-    def clean(self):
-        super().clean()
-        self.check_active_accounts()
-        # 1️⃣ Ensure loan is selected
-        if not self.loan_id:
-            raise ValidationError("Loan must be selected for this payment.")
-
-        # 2️⃣ Check borrower account status (must be active)
-        if self.loan.account.status_type != 'active':
-            raise ValidationError("Cannot accept payment: borrower account is inactive.")
-
-        # 🔴 Prevent fully paid loan
-        if self.loan.balance <= 0:
-            raise ValidationError("This loan is fully paid. No further payments are allowed.")
-
-        # 🔴 Prevent overpayment
-        if self.amount > self.loan.balance:
-            raise ValidationError(
-                f"Payment exceeds remaining loan balance ({self.loan.balance:.2f})."
-            )
-
-        # 3️⃣ Check for duplicate receipt reference number
-        if self.receipt_ref_no:
-            exists = LoanPayment.objects.filter(receipt_ref_no=self.receipt_ref_no).exclude(pk=self.pk).exists()
-            if exists:
-                raise ValidationError({'receipt_ref_no': "This receipt reference number has already been used."})
-
-        # 4️⃣ Snapshot due date (if not already set)
-        if not self.due_date:
-            self.due_date = self.loan.next_monthly_due_date()
-
-        # 5️⃣ Ensure `paid_on` is set if not provided
-        if not self.paid_on:
-            self.paid_on = timezone.now().date()
-
-        # 6️⃣ Validate delay time (calculate based on `paid_on` vs `due_date`)
-        if self.paid_on and self.due_date and self.paid_on > self.due_date:
-            months_late = (
-                    (self.paid_on.year - self.due_date.year) * 12 +
-                    (self.paid_on.month - self.due_date.month))
-            self.delay_time = max(months_late, 1)
-        else:
-            self.delay_time = 0
-
-        # 7️⃣ Compute amount_due based on delay
-        self.amount_due = (self.loan.monthly_payment * Decimal(self.delay_time)).quantize(Decimal("0.01"))
-
-        #self.amount_due = self.loan.monthly_payment
-        # 8️⃣ Ensure payment amount is greater than zero
-        if self.amount <= 0:
-            raise ValidationError("Payment amount must be greater than zero.")
-
-    def apply_penalty(self):
-        """Apply penalty if the payment is late and update relevant accounts."""
-        from .services import LoanPaymentService
-
-        # Apply penalty via service
-        penalty_amount = LoanPaymentService.apply_penalty(self)
-        return penalty_amount
-
-    @property
-    def account(self):
-        return self.loan.account
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        is_new = self._state.adding
-
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-        # 🔐 Ledger must be written ONLY ONCE
-        if is_new and not self.ledger_posted:
-            self.record_repayment_in_ledger()
-            self.ledger_posted = True
-            super().save(update_fields=['ledger_posted'])
-
-    def record_repayment_in_ledger(self):
-        """Record the loan repayment in the ledger and update the loan status if needed."""
-        from .services import LoanPaymentService
-
-        # Handle loan repayment
-        LoanPaymentService.process_payment(self)  ##This also has ledgers
-
-        # Check if loan is fully paid and update status if needed
-        if self.loan.balance <= 0:
-            self.loan.status = Loan.LoanStatus.PAID
-            self.loan.save()
-
-    @property
-    def repayment_progress_percent(self):
-        """Returns the repayment progress percentage of the loan."""
-        total_payable = self.loan.total_payable
-        if total_payable == 0:
-            return Decimal("0.00")
-        return ((self.loan.total_paid / total_payable) * 100).quantize(Decimal("0.01"))
-
-    def __str__(self):
-        return f"Payment for Loan {self.loan.id} - {self.amount_due} due on {self.due_date}"
 
     #@property  ##Check tommorrrow, self.loan stauts ==active
     #def overdue(self):
