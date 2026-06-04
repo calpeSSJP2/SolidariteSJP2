@@ -50,8 +50,7 @@
             <div class="accordion-body py-2 px-3">
                    {% for loan in loans %}
                 <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"  class="nav-link px-3">   🔎 Track Loan #{{ loan.id }}</a>
-                <a href="{% url 'transact2_loans:loan_payment_plan' loan.id %}"   class="nav-link px-5 text-success">
-   📅 Installment Plan </a>
+
   <a href="{% url 'transact2_loans:loan-installment-status' loan.id %}"
        class="nav-link px-5 text-primary">
        📊 Installment Status
