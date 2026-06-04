@@ -797,7 +797,7 @@ class LegacyAccountImportView(
         })
 
 class MonthlyDepositSummaryView(LoginRequiredMixin, TemplateView):
-    template_name = "monthly_deposit_summary.html"
+    template_name = "transact1_regular_deposit/monthly_deposit_summary1.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

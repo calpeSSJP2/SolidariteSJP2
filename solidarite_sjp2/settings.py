@@ -258,7 +258,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # $env:DB_PORT="3306"
 #py manage.py makemigrations
 #py manage.py migrate
-##py pr manage.py runserver
+##py manage.py runserver
 #git status
 #git add .
 #git commit -m "Add bank "

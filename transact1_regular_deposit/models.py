@@ -6,15 +6,12 @@ from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from accounts.mixins import ActiveAccountMixin
+from django.core.exceptions import ValidationError
 
+from transact2_loans.models import LoanPayment
 # -----------------------------
 # Base Transaction
 # -----------------------------
-
-from transact1_regular_deposit.services import DepositDueTransactionService
-
-
-
 class BaseTransaction(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     timestamp = models.DateTimeField(default=timezone.now, db_index=True)
@@ -403,25 +400,8 @@ class SJP2Transaction(ActiveAccountMixin, BaseTransaction): #(Base transaction ,
                 credit=Decimal('0.00'),
                 reference=reference)
 
-            # 2️⃣ Credit System Pool (temporary holding / payout bucket, acount to control montly distribution)
-            #LedgerService.create_statement(   ,It works like expense
-             #   account=self.to_sjp2_account,
-             #   transaction_type='interest_distribution',
-              #  debit=Decimal('0.00'),
-              #  credit=self.amount,
-              #  reference=reference )
-
-            # 🧾 Audit-only record (NO member balance impact)
-            # We do NOT credit member account in ledger system balance sense
-            # because cash is already given physically
-
     def clean(self):
-        from django.core.exceptions import ValidationError
-        from decimal import Decimal
-        from transact2_loans.models import LoanPayment
-
-
-        # 0️⃣ Check account status (from mixin)
+                # 0️⃣ Check account status (from mixin)
         self.check_active_accounts()
 
         # -----------------------------

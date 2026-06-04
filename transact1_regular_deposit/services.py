@@ -11,8 +11,6 @@ from ledger.services import LedgerService
 from django.db import transaction
 from django.utils import timezone
 from ledger.models import AccountStatement
-from .models import DepositDueTransaction
-
 
 class DepositDueTransactionService:
     FLAT_PENALTY_PER_MONTH = Decimal("500.00")
@@ -28,7 +26,7 @@ class DepositDueTransactionService:
 
     @classmethod
     def generate_due_records(cls, account):
-
+        from .models import DepositDueTransaction
         today = timezone.now().date()
 
         first_due = date(
@@ -43,6 +41,7 @@ class DepositDueTransactionService:
         current = first_due
 
         while current <= today:
+            from .models import DepositDueTransaction
             DepositDueTransaction.objects.get_or_create(
                 account=account,
                 due_date=current,
@@ -58,6 +57,7 @@ class DepositDueTransactionService:
 
     @staticmethod
     def get_oldest_unpaid_due(account):
+        from .models import DepositDueTransaction
         return (DepositDueTransaction.objects
             .filter(
                 account=account,

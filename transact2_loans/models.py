@@ -27,9 +27,9 @@ def add_months(start_date: date, months: int) -> date:
     if day > last_day:
         day = last_day
     return date(year, month, day)
-##relativedelta is a class from the dateutil library that allows you to add or subtract calendar-based time periods (months, years, days, etc.) from dates.
+
 def month_end(dt):
-        """ Return the last day of the month.    """
+        """ Return the last day of the month.        """
         first_of_next_month = dt.replace(day=1) + relativedelta(months=1)
         return first_of_next_month - relativedelta(days=1)
 
@@ -37,7 +37,7 @@ User = get_user_model()
 
 
 
-    
+
 class AuditLog(models.Model):
     ACTION_CHOICES = [
         ('request', 'Loan Requested'),
@@ -527,7 +527,7 @@ class Loan(ActiveAccountMixin, models.Model):
         # -----------------------------
         # Loan Payment paid_on, loanCount, names, amount paid, amount_due, delay time, penalities_applied
         # -----------------------------
-        class LoanPayment(ActiveAccountMixin, models.Model):
+class LoanPayment(ActiveAccountMixin, models.Model):
             ACCOUNT_FIELDS = ['account']  ##Beacuse no account fied ,use property from loan
             loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
             amount = models.DecimalField(max_digits=12, decimal_places=2)
