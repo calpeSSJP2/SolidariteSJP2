@@ -52,7 +52,10 @@
                 <a href="{% url 'transact2_loans:workflow-detail' loan.id %}"  class="nav-link px-3">   🔎 Track Loan #{{ loan.id }}</a>
                 <a href="{% url 'transact2_loans:loan_payment_plan' loan.id %}"   class="nav-link px-5 text-success">
    📅 Installment Plan </a>
-
+  <a href="{% url 'transact2_loans:loan-installment-status' loan.id %}"
+       class="nav-link px-5 text-primary">
+       📊 Installment Status
+    </a>
               {% empty %}
 
 <p class="px-3 text-muted">
