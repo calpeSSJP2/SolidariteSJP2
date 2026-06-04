@@ -391,16 +391,17 @@ class Loan(ActiveAccountMixin, models.Model):
         if next_month > self.term_months:
             return self.due_date
 
-        return month_end(
-            self.issued_on + relativedelta(months=next_month))
+        return month_end(self.issued_on + relativedelta(months=next_month))
 
     @property
     def unpaid_installments(self):
-        paid_installments = int(self.total_paid / self.monthly_payment )
-        expected_installments = ((timezone.now().date().year - self.first_due_date.year) * 12 +
-                                        (timezone.now().date().month - self.first_due_date.month)) + 1
-        return max(expected_installments - paid_installments, 0 )
-
+        paid_installments = int(self.total_paid / self.monthly_payment)
+        today = timezone.now().date()
+        expected_installments = (((today.year - self.first_due_date.year) * 12)
+                + (today.month - self.first_due_date.month) + 1)
+        expected_installments = min( expected_installments, self.term_months )
+        return max(expected_installments - paid_installments, 0  )  ##This kkep unpaid between installement and terms
+    
     @property
     def is_current1(self):  ##This is critize to work on only one Original loan with no top-ups, Original loan with one top-up,
         """

@@ -1304,7 +1304,7 @@ class LoanInstallmentStatusView(DetailView):
         context["oldest_due_date"] = loan.next_monthly_due_date()
         context["monthly_installment"] = loan.monthly_payment
         # Example
-        unpaid_installments = loan.unpaid_installments_count()
+        unpaid_installments = loan.unpaid_installments
         context["unpaid_installments"] = unpaid_installments
         context["amount_due"] = ( unpaid_installments * loan.monthly_payment   )
         return context
