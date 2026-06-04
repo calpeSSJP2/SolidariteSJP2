@@ -6,17 +6,32 @@
 
     <div class="card shadow-sm">
 
-        <div class="card-header bg-primary text-white">
-            Loan Installment Status
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span>📊 Loan Installment Status</span>
+
+            <a href="{% url 'transact2_loans:loan_payment_plan' loan.id %}"
+               class="btn btn-light btn-sm">
+                📅 View Full Installment Plan
+            </a>
         </div>
 
         <div class="card-body">
 
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped">
 
                 <tr>
                     <th>Loan ID</th>
                     <td>{{ loan.id }}</td>
+                </tr>
+
+                <tr>
+                    <th>Total Loan Amount</th>
+                    <td>{{ loan.amount|floatformat:2 }}</td>
+                </tr>
+
+                <tr>
+                    <th>Current Balance</th>
+                    <td>{{ loan.balance|floatformat:2 }}</td>
                 </tr>
 
                 <tr>
@@ -26,7 +41,7 @@
 
                 <tr>
                     <th>Monthly Installment</th>
-                    <td>{{ monthly_installment }}</td>
+                    <td>{{ monthly_installment|floatformat:2 }}</td>
                 </tr>
 
                 <tr>
@@ -36,16 +51,26 @@
 
                 <tr class="table-warning">
                     <th>Amount Due</th>
-                    <td>{{ amount_due }}</td>
+                    <td>{{ amount_due|floatformat:2 }}</td>
                 </tr>
 
             </table>
 
+            {% if unpaid_installments > 0 %}
+            <div class="alert alert-warning">
+                <strong>Attention:</strong>
+                You have {{ unpaid_installments }} unpaid installment{{ unpaid_installments|pluralize }}.
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                All installments are up to date.
+            </div>
+            {% endif %}
+
         </div>
 
     </div>
-<a href=""   class="nav-link px-5 text-success">
-   📅 Installment Plan </a>
+
 </div>
 
 {% endblock %}
