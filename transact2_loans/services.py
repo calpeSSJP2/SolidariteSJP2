@@ -161,8 +161,6 @@ class LoanPaymentService:
 
         return loan_payment
     # -----------------------------
-
-    @classmethod
     @classmethod
     def prepare_payment(cls, loan_payment):
 
